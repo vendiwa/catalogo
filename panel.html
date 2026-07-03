@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>Vendiwa — Panel de administración</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+  :root {
+    --vd-tinta: #241C29;
+    --vd-tinta2: #2E2433;
+    --vd-papel: #FBF3E7;
+    --vd-papel2: #F3E9D8;
+    --vd-marigold: #F3A93C;
+    --vd-coral: #F0654C;
+    --vd-menta: #3FAE8A;
+    --vd-tinta-suave: #6B5F63;
+    --vd-borde: #EADFCD;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { height:100%; }
+  body {
+    font-family:'Plus Jakarta Sans', sans-serif; background: var(--vd-papel2); color: var(--vd-tinta);
+    min-height:100vh; padding-bottom: 78px; /* espacio para la barra inferior */
+  }
+  a { color:inherit; text-decoration:none; }
+  input, select, textarea, button { font-family:inherit; }
+  ::-webkit-scrollbar { display:none; }
+
+  /* ---------- LOGIN ---------- */
+  .login-screen {
+    min-height:100vh; background: var(--vd-tinta);
+    display:flex; align-items:center; justify-content:center; padding: 24px;
+  }
+  .login-card { width:100%; max-width:380px; }
+  .login-logo { display:flex; align-items:center; gap:8px; justify-content:center; margin-bottom:30px; }
+  .tag-icon { width:26px; height:26px; position:relative; background: var(--vd-marigold); border-radius:4px 12px 12px 4px; transform:rotate(-8deg); }
+  .tag-icon::after { content:''; position:absolute; left:6px; top:50%; transform:translateY(-50%); width:6px; height:6px; border-radius:50%; background:var(--vd-tinta); }
+  .login-logo-txt { font-family:'Fraunces', serif; font-weight:700; font-size:1.4rem; color:#fff; }
+  .login-titulo { font-family:'Fraunces', serif; font-weight:600; font-size:1.3rem; color:#fff; text-align:center; margin-bottom:6px; }
+  .login-sub { text-align:center; color:rgba(251,243,231,0.6); font-size:0.85rem; margin-bottom:26px; }
+  .campo { margin-bottom:14px; }
+  .campo label { font-size:0.76rem; font-weight:600; color:rgba(251,243,231,0.85); display:block; margin-bottom:6px; }
+  .campo input {
+    width:100%; background: rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); color:#fff;
+    padding:13px 14px; border-radius:10px; font-size:0.92rem; outline:none; transition:border-color .2s;
+  }
+  .campo input::placeholder { color: rgba(251,243,231,0.35); }
+  .campo input:focus { border-color: var(--vd-marigold); }
+  .btn-login-entrar {
+    width:100%; padding:14px; border-radius:11px; border:none; font-weight:700; font-size:0.92rem;
+    background: var(--vd-coral); color:#fff; cursor:pointer; margin-top:6px;
+  }
+  .btn-login-entrar:disabled { opacity:0.6; }
+  .login-error {
+    background: rgba(240,101,76,0.12); border:1px solid rgba(240,101,76,0.4); color:#ff9d8a;
+    padding:10px 14px; border-radius:9px; font-size:0.8rem; margin-bottom:14px; display:none;
+  }
+  .login-link-vendiwa { text-align:center; margin-top:22px; font-size:0.8rem; color: rgba(251,243,231,0.5); }
+
+  /* Pantalla: sin tienda asociada */
+  .estado-bloqueante {
+    min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; background: var(--vd-tinta);
+  }
+  .estado-caja-login { background:#fff; border-radius:16px; padding:28px 22px; max-width:380px; text-align:center; }
+  .estado-caja-login .ico { font-size:2.2rem; margin-bottom:12px; }
+  .estado-caja-login h3 { font-family:'Fraunces',serif; font-size:1.15rem; margin-bottom:8px; }
+  .estado-caja-login p { font-size:0.85rem; color: var(--vd-tinta-suave); line-height:1.5; margin-bottom:16px; }
+
+  /* ---------- SHELL DEL PANEL ---------- */
+  .panel-shell { display:none; min-height:100vh; }
+  .panel-shell.activo { display:block; }
+
+  header.app-header {
+    background: var(--vd-tinta); padding: 14px 18px; position:sticky; top:0; z-index:80;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    border-bottom:1px solid rgba(255,255,255,0.08);
+  }
+  .app-header .logo { display:flex; align-items:center; gap:8px; min-width:0; }
+  .app-header .logo-txt { font-family:'Fraunces', serif; font-weight:700; font-size:1.05rem; color:#fff; white-space:nowrap; }
+  .tienda-actual { font-size:0.68rem; color: rgba(251,243,231,0.55); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:150px; }
+  .btn-salir-app {
+    background:transparent; border:1px solid rgba(255,255,255,0.18); color: rgba(251,243,231,0.8);
+    padding:7px 13px; border-radius:8px; font-size:0.74rem; cursor:pointer; flex-shrink:0;
+  }
+
+  .link-publico-bar {
+    background: var(--vd-tinta2); padding:10px 18px; display:flex; align-items:center; gap:10px;
+  }
+  .link-publico-bar .txt { font-size:0.7rem; color: rgba(251,243,231,0.55); flex-shrink:0; }
+  .link-publico-bar .link { font-family:'IBM Plex Mono',monospace; font-size:0.72rem; color: var(--vd-marigold); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; }
+  .link-publico-bar button {
+    background: rgba(243,169,60,0.15); border:1px solid rgba(243,169,60,0.4); color: var(--vd-marigold);
+    padding:6px 11px; border-radius:7px; font-size:0.68rem; cursor:pointer; flex-shrink:0;
+  }
+
+  main.app-main { padding: 16px 16px 20px; max-width: 760px; margin:0 auto; }
+
+  .tab-section { display:none; }
+  .tab-section.activo { display:block; animation: fadeIn .2s ease; }
+  @keyframes fadeIn { from{opacity:0; transform:translateY(4px)} to{opacity:1; transform:translateY(0)} }
+
+  .seccion-titulo-panel {
+    font-family:'Fraunces', serif; font-weight:600; font-size:1.2rem; margin-bottom:4px;
+  }
+  .seccion-sub-panel { font-size:0.8rem; color: var(--vd-tinta-suave); margin-bottom:18px; }
+
+  /* ---------- BARRA INFERIOR (tabs) ---------- */
+  nav.tabbar {
+    position:fixed; bottom:0; left:0; right:0; z-index:90;
+    background:#fff; border-top:1px solid var(--vd-borde);
+    display:flex; padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+  }
+  .tab-btn {
+    flex:1; display:flex; flex-direction:column; align-items:center; gap:3px;
+    background:transparent; border:none; padding:8px 2px; cursor:pointer; color: var(--vd-tinta-suave);
+    border-radius:10px;
+  }
+  .tab-btn .tab-ico { font-size:1.2rem; }
+  .tab-btn .tab-lbl { font-size:0.62rem; font-weight:600; }
+  .tab-btn.activo { color: var(--vd-coral); background: rgba(240,101,76,0.08); }
+
+  /* ---------- CARDS / FORM GENERICO ---------- */
+  .card-panel {
+    background:#fff; border:1px solid var(--vd-borde); border-radius:14px; padding:18px; margin-bottom:14px;
+  }
+  .card-panel-titulo { font-family:'Fraunces', serif; font-weight:600; font-size:1rem; margin-bottom:12px; display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+  .form-group { margin-bottom:13px; }
+  .form-group label { font-size:0.76rem; font-weight:600; color: var(--vd-tinta-suave); display:block; margin-bottom:6px; }
+  .form-group input, .form-group select, .form-group textarea {
+    width:100%; background: var(--vd-papel2); border:1px solid var(--vd-borde); color: var(--vd-tinta);
+    padding:11px 13px; border-radius:10px; font-size:0.86rem; outline:none; transition:border-color .2s;
+  }
+  .form-group textarea { resize:vertical; min-height:76px; }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--vd-marigold); }
+  .ayuda-txt-panel { font-size:0.72rem; color: var(--vd-tinta-suave); line-height:1.5; margin-top:4px; }
+
+  .btn-primario-panel {
+    width:100%; padding:13px; border-radius:11px; border:none; font-weight:700; font-size:0.87rem;
+    background: var(--vd-coral); color:#fff; cursor:pointer;
+  }
+  .btn-primario-panel:disabled { opacity:0.55; }
+  .btn-secundario-panel {
+    width:100%; padding:12px; border-radius:11px; border:1px solid var(--vd-borde); background:transparent;
+    color: var(--vd-tinta-suave); font-size:0.85rem; cursor:pointer;
+  }
+  .btn-ia-panel {
+    width:100%; padding:11px; border-radius:10px; border:1px solid rgba(63,174,138,0.4);
+    background: rgba(63,174,138,0.1); color: #1f7a5c; font-size:0.8rem; font-weight:600; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; gap:6px; margin-top:6px;
+  }
+  .btn-ia-panel:disabled { opacity:0.6; }
+
+  .toggle-row-panel {
+    display:flex; align-items:center; justify-content:space-between; gap:14px; padding:13px 0;
+    border-top:1px solid var(--vd-borde);
+  }
+  .toggle-row-panel:first-child { border-top:none; }
+  .toggle-info-panel .t { font-size:0.84rem; font-weight:600; }
+  .toggle-info-panel .d { font-size:0.72rem; color: var(--vd-tinta-suave); margin-top:2px; line-height:1.4; }
+  .switch-panel { position:relative; display:inline-block; width:44px; height:25px; flex-shrink:0; cursor:pointer; }
+  .switch-panel input { opacity:0; width:0; height:0; }
+  .switch-panel .track { position:absolute; inset:0; background:#ddd; border-radius:20px; transition:background .2s; }
+  .switch-panel .track::before { content:''; position:absolute; width:19px; height:19px; left:3px; top:3px; background:#fff; border-radius:50%; transition:transform .2s; box-shadow:0 1px 3px rgba(0,0,0,0.2); }
+  .switch-panel input:checked + .track { background: var(--vd-menta); }
+  .switch-panel input:checked + .track::before { transform:translateX(19px); }
+
+  /* ---------- PRODUCTOS: lista ---------- */
+  .productos-toolbar { display:flex; gap:8px; margin-bottom:14px; }
+  .productos-toolbar input {
+    flex:1; background:#fff; border:1px solid var(--vd-borde); padding:11px 13px; border-radius:10px; font-size:0.85rem; outline:none;
+  }
+  .btn-add-producto {
+    background: var(--vd-tinta); color:#fff; border:none; width:44px; height:44px; border-radius:10px; font-size:1.3rem; cursor:pointer; flex-shrink:0;
+  }
+  .prod-item {
+    display:flex; gap:12px; align-items:center; background:#fff; border:1px solid var(--vd-borde);
+    border-radius:12px; padding:10px; margin-bottom:9px;
+  }
+  .prod-item img { width:52px; height:52px; border-radius:8px; object-fit:cover; background: var(--vd-papel2); flex-shrink:0; }
+  .prod-item .no-img { width:52px; height:52px; border-radius:8px; background: var(--vd-papel2); display:flex; align-items:center; justify-content:center; font-size:1.3rem; opacity:.35; flex-shrink:0; }
+  .prod-item-info { flex:1; min-width:0; }
+  .prod-item-nombre { font-size:0.85rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .prod-item-precio { font-size:0.78rem; color: var(--vd-coral); font-weight:700; margin-top:2px; }
+  .prod-item-badge { font-size:0.62rem; padding:2px 7px; border-radius:20px; margin-top:4px; display:inline-block; }
+  .prod-item-badge.on { background: rgba(63,174,138,0.15); color:#1f7a5c; }
+  .prod-item-badge.off { background: rgba(107,95,99,0.12); color: var(--vd-tinta-suave); }
+  .prod-item-actions { display:flex; flex-direction:column; gap:6px; flex-shrink:0; }
+  .prod-item-actions button {
+    background: var(--vd-papel2); border:1px solid var(--vd-borde); color: var(--vd-tinta); width:34px; height:34px;
+    border-radius:8px; font-size:0.85rem; cursor:pointer;
+  }
+  .empty-panel { text-align:center; padding:50px 16px; color: var(--vd-tinta-suave); }
+  .empty-panel .ico { font-size:2.2rem; margin-bottom:10px; opacity:.4; }
+
+  /* ---------- MODAL EDITAR PRODUCTO / GENERAL ---------- */
+  .modal-overlay-panel {
+    display:none; position:fixed; inset:0; background:rgba(36,28,41,0.75); z-index:300;
+    align-items:flex-end; justify-content:center;
+  }
+  .modal-overlay-panel.activo { display:flex; }
+  @media(min-width:600px) { .modal-overlay-panel { align-items:center; } }
+  .modal-box-panel {
+    background: var(--vd-papel); width:100%; max-width:460px; max-height:92vh; overflow-y:auto;
+    border-radius:20px 20px 0 0; padding:22px 18px calc(22px + env(safe-area-inset-bottom));
+  }
+  @media(min-width:600px) { .modal-box-panel { border-radius:18px; margin:20px; } }
+  .modal-box-panel h3 { font-family:'Fraunces',serif; font-weight:600; font-size:1.15rem; margin-bottom:16px; }
+  .modal-cerrar-panel { text-align:right; margin-bottom:2px; }
+  .modal-cerrar-panel span { font-size:1.3rem; color: var(--vd-tinta-suave); cursor:pointer; }
+
+  .img-slots-panel { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:10px; }
+  .img-slot-panel {
+    position:relative; aspect-ratio:1/1; border-radius:10px; background:#fff;
+    border:1.5px dashed var(--vd-borde); display:flex; align-items:center; justify-content:center;
+    cursor:pointer; overflow:hidden;
+  }
+  .img-slot-panel.has-img { border-style:solid; }
+  .img-slot-panel img { width:100%; height:100%; object-fit:cover; }
+  .img-slot-panel .plus { font-size:1.5rem; color: var(--vd-tinta-suave); opacity:.5; }
+  .img-slot-panel .remove {
+    position:absolute; top:4px; right:4px; background:rgba(0,0,0,0.6); color:#fff; border:none;
+    width:20px; height:20px; border-radius:50%; font-size:0.65rem; cursor:pointer; display:none;
+    align-items:center; justify-content:center;
+  }
+  .img-slot-panel.has-img .remove { display:flex; }
+  .img-slot-panel .ia-tag {
+    position:absolute; bottom:3px; right:3px; background: rgba(63,174,138,0.92); color:#fff; border:none;
+    font-size:0.58rem; font-weight:700; padding:3px 6px; border-radius:6px; cursor:pointer; display:none;
+  }
+  .img-slot-panel.has-img .ia-tag { display:block; }
+
+  .ia-presets-panel { display:flex; flex-direction:column; gap:9px; }
+  .ia-preset-btn-panel {
+    text-align:left; display:flex; align-items:center; gap:10px; background:#fff; border:1px solid var(--vd-borde);
+    padding:13px; border-radius:11px; font-size:0.84rem; font-weight:600; cursor:pointer;
+  }
+  .ia-preset-btn-panel .d { font-size:0.7rem; color: var(--vd-tinta-suave); font-weight:400; margin-top:2px; }
+  .ia-spinner-panel {
+    width:32px; height:32px; border-radius:50%; border:3px solid rgba(63,174,138,0.2); border-top-color: var(--vd-menta);
+    margin:0 auto 12px; animation: girarp .8s linear infinite;
+  }
+  @keyframes girarp { to{transform:rotate(360deg)} }
+  .ia-estado-panel { text-align:center; padding:26px 8px; }
+  .ia-preview-img-panel { width:100%; border-radius:12px; overflow:hidden; margin-bottom:14px; aspect-ratio:1/1; background:#fff; }
+  .ia-preview-img-panel img { width:100%; height:100%; object-fit:cover; }
+  .ia-error-box-panel { background: rgba(240,101,76,0.1); border:1px solid rgba(240,101,76,0.3); color:#c8442f; padding:12px; border-radius:10px; font-size:0.8rem; margin-bottom:12px; text-align:center; }
+  .ia-back-btn-panel { background:none; border:none; color: var(--vd-tinta-suave); font-size:0.76rem; cursor:pointer; margin-bottom:8px; }
+  .venta-texto-resultado-panel {
+    width:100%; background:#fff; border:1px solid var(--vd-borde); padding:13px; border-radius:10px;
+    font-size:0.83rem; min-height:130px; resize:vertical; margin-bottom:10px; line-height:1.5;
+  }
+
+  /* ---------- PALETAS ---------- */
+  .paletas-grid-panel { display:grid; grid-template-columns:repeat(auto-fill,minmax(76px,1fr)); gap:9px; margin-bottom:14px; }
+  .paleta-card-panel {
+    border-radius:11px; border:1.5px solid var(--vd-borde); padding:7px; cursor:pointer; background:#fff;
+    display:flex; flex-direction:column; gap:5px; align-items:center;
+  }
+  .paleta-card-panel.activa { border-color: var(--vd-coral); box-shadow:0 0 0 1px var(--vd-coral); }
+  .paleta-swatches-panel { display:flex; width:100%; height:26px; border-radius:6px; overflow:hidden; }
+  .paleta-swatches-panel span { flex:1; }
+  .paleta-nombre-panel { font-size:0.6rem; color: var(--vd-tinta-suave); text-align:center; }
+
+  .color-grid-panel { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
+  .color-field-panel label { font-size:0.72rem; color: var(--vd-tinta-suave); display:block; margin-bottom:5px; }
+  .color-field-panel input[type=color] { width:100%; height:42px; border-radius:9px; border:1px solid var(--vd-borde); background:#fff; cursor:pointer; padding:4px; }
+
+  .segmented-panel { display:flex; background: var(--vd-papel2); border-radius:10px; padding:4px; margin-bottom:14px; }
+  .segmented-panel button { flex:1; padding:9px; border:none; background:transparent; color: var(--vd-tinta-suave); font-size:0.76rem; font-weight:600; border-radius:8px; cursor:pointer; }
+  .segmented-panel button.activo { background: var(--vd-tinta); color:#fff; }
+
+  .logo-preview-row-panel { display:flex; gap:8px; margin:8px 0 12px; }
+  .logo-preview-box-panel { flex:1; height:64px; border-radius:9px; display:flex; align-items:center; justify-content:center; border:1px solid var(--vd-borde); overflow:hidden; }
+  .logo-preview-box-panel.claro { background:#f2f2f2; }
+  .logo-preview-box-panel.oscuro { background:#1a1420; }
+  .logo-preview-box-panel img { max-height:38px; max-width:80%; object-fit:contain; }
+  .logo-preview-vacio-panel { font-size:0.62rem; color:#999; }
+
+  .hero-preview-mini-panel {
+    border-radius:11px; overflow:hidden; position:relative; height:110px; background-size:cover; background-position:center;
+    display:flex; align-items:center; justify-content:center; margin-bottom:12px; border:1px solid var(--vd-borde);
+    background-color: var(--vd-papel2);
+  }
+  .hero-preview-mini-panel .ov { position:absolute; inset:0; background:rgba(0,0,0,0.5); }
+  .hero-preview-mini-panel .t { position:relative; z-index:1; color:#fff; font-size:0.75rem; font-weight:600; text-align:center; padding:0 10px; }
+  .slider-row-panel { margin:12px 0; }
+  .slider-row-panel label { font-size:0.76rem; color: var(--vd-tinta-suave); display:block; margin-bottom:7px; }
+  .slider-row-panel input[type=range] { width:100%; accent-color: var(--vd-coral); }
+
+  .btn-subir-img-panel {
+    display:inline-flex; align-items:center; gap:6px; background:#fff; border:1px solid var(--vd-borde);
+    color: var(--vd-tinta); padding:10px 16px; border-radius:10px; font-size:0.8rem; font-weight:600; cursor:pointer; width:100%; justify-content:center;
+  }
+
+  /* ---------- METODOS DE PAGO ---------- */
+  .metodo-item-panel {
+    background:#fff; border:1px solid var(--vd-borde); border-radius:11px; padding:12px 14px; margin-bottom:9px;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+  }
+  .metodo-item-info-panel b { display:block; font-size:0.83rem; }
+  .metodo-item-info-panel span { font-size:0.74rem; color: var(--vd-tinta-suave); }
+  .metodo-item-actions-panel { display:flex; gap:6px; flex-shrink:0; }
+  .metodo-item-actions-panel button {
+    background: var(--vd-papel2); border:1px solid var(--vd-borde); width:32px; height:32px; border-radius:8px; font-size:0.8rem; cursor:pointer;
+  }
+
+  /* ---------- TOAST ---------- */
+  .toast-panel {
+    position:fixed; bottom:90px; left:50%; transform:translateX(-50%); background: var(--vd-tinta); color:#fff;
+    padding:12px 22px; border-radius:10px; font-size:0.82rem; z-index:999; opacity:0; transition:opacity .3s;
+    pointer-events:none; max-width:calc(100vw - 32px); text-align:center;
+  }
+  .toast-panel.show { opacity:1; }
+
+  .skel-panel { background: var(--vd-papel2); border-radius:12px; height:74px; margin-bottom:9px; animation: pulsep 1.4s ease-in-out infinite; }
+  @keyframes pulsep { 0%,100%{opacity:.5} 50%{opacity:1} }
+
+  @media(min-width:640px) {
+    main.app-main { padding: 22px 20px 30px; }
+    .card-panel { padding:22px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<div class="login-screen" id="login-screen">
+  <div class="login-card">
+    <div class="login-logo"><div class="tag-icon"></div><div class="login-logo-txt">Vendiwa</div></div>
+    <div class="login-titulo">Panel de administración</div>
+    <div class="login-sub">Entra con la cuenta de tu tienda</div>
+    <div class="login-error" id="login-error"></div>
+    <div class="campo">
+      <label>Correo electrónico</label>
+      <input type="email" id="li-email" placeholder="correo@negocio.com" autocomplete="username"/>
+    </div>
+    <div class="campo">
+      <label>Contraseña</label>
+      <input type="password" id="li-password" placeholder="Tu contraseña" autocomplete="current-password" onkeydown="if(event.key==='Enter')intentarLogin()"/>
+    </div>
+    <button class="btn-login-entrar" id="btn-login-entrar" onclick="intentarLogin()">Entrar a mi panel</button>
+    <div class="login-link-vendiwa">¿No tienes cuenta? Créala desde la página principal de Vendiwa.</div>
+  </div>
+</div>
+
+<!-- ============ SIN TIENDA ASOCIADA ============ -->
+<div class="estado-bloqueante" id="estado-sin-tienda" style="display:none;">
+  <div class="estado-caja-login">
+    <div class="ico">🛠️</div>
+    <h3>No encontramos tu tienda</h3>
+    <p>Tu cuenta inició sesión correctamente, pero no tiene ninguna tienda asociada todavía. Escríbenos y te ayudamos a configurarla.</p>
+    <button class="btn-secundario-panel" onclick="cerrarSesionApp()">Salir</button>
+  </div>
+</div>
+
+<!-- ============ PANEL PRINCIPAL ============ -->
+<div class="panel-shell" id="panel-shell">
+  <header class="app-header">
+    <div class="logo">
+      <div class="tag-icon"></div>
+      <div>
+        <div class="logo-txt">Vendiwa</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+      <div class="tienda-actual" id="tienda-actual-nombre"></div>
+      <button class="btn-salir-app" onclick="cerrarSesionApp()">Salir</button>
+    </div>
+  </header>
+
+  <div class="link-publico-bar">
+    <span class="txt">Tu catálogo:</span>
+    <span class="link" id="link-publico-txt"></span>
+    <button onclick="copiarLinkPublico()">Copiar</button>
+  </div>
+
+  <main class="app-main">
+
+    <!-- TAB PRODUCTOS -->
+    <section class="tab-section" id="tab-productos">
+      <div class="seccion-titulo-panel">Productos</div>
+      <div class="seccion-sub-panel">Administra lo que aparece en tu catálogo público.</div>
+      <div class="productos-toolbar">
+        <input type="text" id="prod-buscar" placeholder="Buscar producto..." oninput="renderListaProductos()"/>
+        <button class="btn-add-producto" onclick="abrirEditarProducto(null)">＋</button>
+      </div>
+      <div id="productos-lista"></div>
+    </section>
+
+    <!-- TAB ESTILO -->
+    <section class="tab-section" id="tab-estilo">
+      <div class="seccion-titulo-panel">Estilo de tu catálogo</div>
+      <div class="seccion-sub-panel">Así se ve tu tienda para tus clientes.</div>
+
+      <div class="card-panel">
+        <div class="card-panel-titulo">🎨 Colores y textos</div>
+        <div class="form-group"><label>Nombre del catálogo (parte 1)</label><input type="text" id="p-logo1" placeholder="Ej: Moda"/></div>
+        <div class="form-group"><label>Nombre del catálogo (parte 2, en cursiva)</label><input type="text" id="p-logo2" placeholder="Ej: Andrea"/></div>
+        <div class="form-group"><label>Etiqueta arriba del título</label><input type="text" id="p-badge" placeholder="Catálogo oficial"/></div>
+        <div class="form-group"><label>Título principal</label><textarea id="p-titulo" placeholder="Encuentra tu estilo"></textarea></div>
+        <div class="form-group"><label>Subtítulo</label><textarea id="p-subtitulo" placeholder="Descripción corta de tu catálogo..."></textarea></div>
+
+        <div class="paletas-grid-panel" id="paletas-grid-panel"></div>
+        <div class="color-grid-panel">
+          <div class="color-field-panel"><label>Acento 1</label><input type="color" id="p-color1" oninput="marcarPaletaActivaPanel()"/></div>
+          <div class="color-field-panel"><label>Acento 2</label><input type="color" id="p-color2" oninput="marcarPaletaActivaPanel()"/></div>
+          <div class="color-field-panel"><label>Fondo</label><input type="color" id="p-color-fondo" oninput="marcarPaletaActivaPanel()"/></div>
+          <div class="color-field-panel"><label>Texto</label><input type="color" id="p-color-texto" oninput="marcarPaletaActivaPanel()"/></div>
+        </div>
+        <button class="btn-primario-panel" onclick="guardarPersonalizacionPanel()">Guardar estilo</button>
+      </div>
+
+      <div class="card-panel">
+        <div class="card-panel-titulo">🖼️ Logotipo</div>
+        <div class="segmented-panel">
+          <button type="button" id="logo-tipo-btn-texto" onclick="cambiarTipoLogoPanel('texto')">Texto</button>
+          <button type="button" id="logo-tipo-btn-imagen" onclick="cambiarTipoLogoPanel('imagen')">Imagen (PNG)</button>
+        </div>
+        <div id="logo-imagen-wrap-panel" style="display:none;">
+          <div class="logo-preview-row-panel">
+            <div class="logo-preview-box-panel claro" id="logo-preview-claro-panel"><span class="logo-preview-vacio-panel">Sin logo</span></div>
+            <div class="logo-preview-box-panel oscuro" id="logo-preview-oscuro-panel"><span class="logo-preview-vacio-panel">Sin logo</span></div>
+          </div>
+          <input type="file" id="logo-file-input-panel" accept="image/png" style="display:none;" onchange="onLogoArchivoPanel(this)"/>
+          <button type="button" class="btn-subir-img-panel" onclick="document.getElementById('logo-file-input-panel').click()">📤 Subir logo PNG</button>
+        </div>
+        <button class="btn-primario-panel" style="margin-top:14px;" onclick="guardarLogoPanel()">Guardar logotipo</button>
+      </div>
+
+      <div class="card-panel">
+        <div class="card-panel-titulo">🖼️ Fondo del encabezado</div>
+        <div class="segmented-panel">
+          <button type="button" id="hero-tipo-btn-color" onclick="cambiarTipoHeroPanel('color')">Color</button>
+          <button type="button" id="hero-tipo-btn-imagen" onclick="cambiarTipoHeroPanel('imagen')">Imagen</button>
+        </div>
+        <div id="hero-imagen-wrap-panel" style="display:none;">
+          <div class="hero-preview-mini-panel" id="hero-preview-mini-panel"><div class="ov" id="hero-preview-ov-panel"></div><div class="t">Así se vería el título</div></div>
+          <input type="file" id="hero-file-input-panel" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="onHeroArchivoPanel(this)"/>
+          <button type="button" class="btn-subir-img-panel" onclick="document.getElementById('hero-file-input-panel').click()">📤 Subir imagen de fondo</button>
+          <div class="slider-row-panel"><label>Oscurecer para que el texto se lea bien</label><input type="range" id="hero-overlay-slider-panel" min="30" max="80" value="50" oninput="previsualizarOverlayHeroPanel()"/></div>
+        </div>
+        <button class="btn-primario-panel" style="margin-top:6px;" onclick="guardarHeroPanel()">Guardar fondo</button>
+      </div>
+    </section>
+
+    <!-- TAB TIENDA -->
+    <section class="tab-section" id="tab-tienda">
+      <div class="seccion-titulo-panel">Ajustes de tienda</div>
+      <div class="seccion-sub-panel">Moneda, WhatsApp y redes sociales.</div>
+
+      <div class="card-panel">
+        <div class="card-panel-titulo">🛒 Moneda y WhatsApp</div>
+        <div class="form-group"><label>Símbolo de moneda</label><input type="text" id="a-moneda" placeholder="$" maxlength="6"/></div>
+        <div class="toggle-row-panel">
+          <div class="toggle-info-panel"><div class="t">Pedidos por WhatsApp</div><div class="d">Muestra "Agregar al carrito" en tu catálogo.</div></div>
+          <label class="switch-panel"><input type="checkbox" id="a-pedidos-wpp"/><span class="track"></span></label>
+        </div>
+        <div class="toggle-row-panel">
+          <div class="toggle-info-panel"><div class="t">Consultas por WhatsApp</div><div class="d">Botón para preguntar por un producto puntual.</div></div>
+          <label class="switch-panel"><input type="checkbox" id="a-consultas-wpp"/><span class="track"></span></label>
+        </div>
+        <div class="form-group" style="margin-top:12px;"><label>Número de WhatsApp (con indicativo, sin + ni espacios)</label><input type="text" id="a-whatsapp" placeholder="Ej: 573001234567"/></div>
+        <button class="btn-primario-panel" onclick="guardarAjustesTiendaPanel()">Guardar ajustes</button>
+      </div>
+
+      <div class="card-panel">
+        <div class="card-panel-titulo">🔗 Redes sociales</div>
+        <div class="toggle-row-panel" style="border-top:none;padding-top:0;">
+          <div class="toggle-info-panel"><div class="t">📷 Instagram</div></div>
+          <label class="switch-panel"><input type="checkbox" id="red-instagram-activo"/><span class="track"></span></label>
+        </div>
+        <div class="form-group"><input type="text" id="red-instagram-link" placeholder="https://instagram.com/tu_tienda"/></div>
+        <div class="toggle-row-panel">
+          <div class="toggle-info-panel"><div class="t">📘 Facebook</div></div>
+          <label class="switch-panel"><input type="checkbox" id="red-facebook-activo"/><span class="track"></span></label>
+        </div>
+        <div class="form-group"><input type="text" id="red-facebook-link" placeholder="https://facebook.com/tu_tienda"/></div>
+        <div class="toggle-row-panel">
+          <div class="toggle-info-panel"><div class="t">🎵 TikTok</div></div>
+          <label class="switch-panel"><input type="checkbox" id="red-tiktok-activo"/><span class="track"></span></label>
+        </div>
+        <div class="form-group"><input type="text" id="red-tiktok-link" placeholder="https://tiktok.com/@tu_tienda"/></div>
+        <button class="btn-primario-panel" onclick="guardarRedesPanel()">Guardar redes sociales</button>
+      </div>
+    </section>
+
+    <!-- TAB PAGOS -->
+    <section class="tab-section" id="tab-pagos">
+      <div class="seccion-titulo-panel">Métodos de pago</div>
+      <div class="seccion-sub-panel">Se muestran a tus clientes en el carrito antes de enviar el pedido.</div>
+      <button class="btn-primario-panel" style="margin-bottom:14px;" onclick="abrirEditarMetodoPanel(null)">＋ Nuevo método de pago</button>
+      <div id="metodos-lista-panel"></div>
+    </section>
+
+  </main>
+</div>
+
+<nav class="tabbar" id="tabbar" style="display:none;">
+  <button class="tab-btn activo" data-tab="productos" onclick="cambiarTab('productos')"><span class="tab-ico">🛍</span><span class="tab-lbl">Productos</span></button>
+  <button class="tab-btn" data-tab="estilo" onclick="cambiarTab('estilo')"><span class="tab-ico">🎨</span><span class="tab-lbl">Estilo</span></button>
+  <button class="tab-btn" data-tab="tienda" onclick="cambiarTab('tienda')"><span class="tab-ico">⚙️</span><span class="tab-lbl">Tienda</span></button>
+  <button class="tab-btn" data-tab="pagos" onclick="cambiarTab('pagos')"><span class="tab-ico">💳</span><span class="tab-lbl">Pagos</span></button>
+</nav>
+
+<!-- MODAL: EDITAR/CREAR PRODUCTO -->
+<div class="modal-overlay-panel" id="modal-producto">
+  <div class="modal-box-panel">
+    <div class="modal-cerrar-panel"><span onclick="cerrarEditarProducto()">✕</span></div>
+    <h3 id="modal-producto-titulo">Nuevo producto</h3>
+    <div class="form-group"><label>ID del producto</label><input type="text" id="e-id" placeholder="Ej: 1904798"/></div>
+    <div class="form-group"><label>Nombre</label><input type="text" id="e-nombre" placeholder="Nombre del producto"/></div>
+    <div class="form-group">
+      <label>Descripción</label>
+      <textarea id="e-desc" placeholder="Descripción del producto..."></textarea>
+      <button type="button" class="btn-ia-panel" id="btn-generar-desc-panel" onclick="generarDescripcionIAPanel()">✨ Generar descripción con IA</button>
+    </div>
+    <div class="form-group"><label>Precio</label><input type="number" id="e-precio" placeholder="Ej: 74000"/></div>
+    <div class="toggle-row-panel" style="border-top:none;padding-top:0;">
+      <div class="toggle-info-panel"><div class="t">Producto activo</div><div class="d">Visible en tu catálogo público.</div></div>
+      <label class="switch-panel"><input type="checkbox" id="e-activo" checked/><span class="track"></span></label>
+    </div>
+    <div class="form-group">
+      <label>Fotos (máx. 3)</label>
+      <div class="img-slots-panel" id="img-slots-panel"></div>
+      <input type="file" id="img-file-input-panel" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="onArchivoProductoPanel(this)"/>
+      <div id="upload-status-panel" style="font-size:0.73rem;color:var(--vd-coral);display:none;margin-top:4px;"></div>
+    </div>
+    <button class="btn-primario-panel" onclick="guardarProductoPanel()">Guardar producto</button>
+    <button class="btn-secundario-panel" style="margin-top:9px;" onclick="cerrarEditarProducto()">Cancelar</button>
+    <button class="btn-secundario-panel" id="btn-eliminar-producto-panel" style="margin-top:9px;display:none;color:#c8442f;border-color:rgba(240,101,76,0.4);" onclick="eliminarProductoPanel()">Eliminar producto</button>
+  </div>
+</div>
+
+<!-- MODAL: IA IMAGEN -->
+<div class="modal-overlay-panel" id="modal-ia-imagen">
+  <div class="modal-box-panel" id="ia-imagen-box"></div>
+</div>
+
+<!-- MODAL: IA TEXTO DE VENTA -->
+<div class="modal-overlay-panel" id="modal-ia-venta">
+  <div class="modal-box-panel" id="ia-venta-box"></div>
+</div>
+
+<!-- MODAL: METODO DE PAGO -->
+<div class="modal-overlay-panel" id="modal-metodo">
+  <div class="modal-box-panel">
+    <div class="modal-cerrar-panel"><span onclick="cerrarEditarMetodoPanel()">✕</span></div>
+    <h3 id="metodo-titulo-panel">Nuevo método de pago</h3>
+    <div class="form-group">
+      <label>Banco / plataforma</label>
+      <select id="m-banco-select-panel" onchange="onCambioBancoPanel()"></select>
+    </div>
+    <div class="form-group" id="m-banco-otro-wrap-panel" style="display:none;"><label>Nombre del banco / plataforma</label><input type="text" id="m-banco-otro-panel"/></div>
+    <div class="form-group"><label>Nombre del titular</label><input type="text" id="m-titular-panel"/></div>
+    <div class="form-group"><label>Cédula</label><input type="text" id="m-cedula-panel"/></div>
+    <div class="form-group"><label>Número de cuenta / celular</label><input type="text" id="m-numero-panel"/></div>
+    <button class="btn-primario-panel" onclick="guardarMetodoPanel()">Guardar método</button>
+    <button class="btn-secundario-panel" style="margin-top:9px;" onclick="cerrarEditarMetodoPanel()">Cancelar</button>
+  </div>
+</div>
+
+<div class="toast-panel" id="toast-panel"></div>
+
+<script>
+const SUPABASE_URL = 'https://rkeccygggeoryokjvlhh.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrZWNjeWdnZ2Vvcnlva2p2bGhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMwODE2NjksImV4cCI6MjA5ODY1NzY2OX0.06FmOkwE2kY-r_l4a9o8lDmf7XFWFqhUn5bqUS-jH3M';
+const BUCKET = 'vendiwa-imagenes';
+const SESSION_KEY = 'vendiwa_admin_session';
+
+let session = null;      // { access_token, refresh_token, expires_at, user }
+let tienda = null;       // fila de public.tiendas
+let productos = [];
+let metodosPago = [];
+let editandoProductoId = null;
+let editandoMetodoId = null;
+let tabActual = 'productos';
+
+const BANCOS_COLOMBIA = [
+  'Nequi','Daviplata','Bancolombia','Davivienda','BBVA Colombia','Banco de Bogotá','Banco Popular',
+  'Banco Caja Social','Banco Agrario de Colombia','Banco AV Villas','Scotiabank Colpatria','Itaú',
+  'Banco Falabella','Banco Pichincha','Movii','RappiPay','Lulo Bank','Ualá','Powwi','Otro'
+];
+
+const DEFAULT_SETTINGS = {
+  colorDorado:'#F0654C', colorRosa:'#F3A93C', colorFondo:'#FBF3E7', colorTexto:'#241C29',
+  logoNombre1:'Mi', logoNombre2:'Tienda', badge:'Catálogo oficial',
+  titulo:'Encuentra tu estilo', subtitulo:'Productos seleccionados para ti.'
+};
+const DEFAULT_STORE_SETTINGS = { simboloMoneda:'$', pedidosWhatsapp:false, consultasWhatsapp:false, whatsappNumero:'' };
+const DEFAULT_LOGO_SETTINGS = { tipo:'texto', imagenUrl:null };
+const DEFAULT_HERO_SETTINGS = { tipoFondo:'color', imagenUrl:null, overlay:50 };
+const DEFAULT_SOCIAL_SETTINGS = { instagram:{activo:false,link:''}, facebook:{activo:false,link:''}, tiktok:{activo:false,link:''} };
+
+let currentSettings = { ...DEFAULT_SETTINGS };
+let storeSettings = { ...DEFAULT_STORE_SETTINGS };
+let logoSettings = { ...DEFAULT_LOGO_SETTINGS };
+let heroSettings = { ...DEFAULT_HERO_SETTINGS };
+let socialSettings = JSON.parse(JSON.stringify(DEFAULT_SOCIAL_SETTINGS));
+
+const PALETAS = [
+  { nombre:'Vendiwa', colorDorado:'#F0654C', colorRosa:'#F3A93C', colorFondo:'#FBF3E7', colorTexto:'#241C29' },
+  { nombre:'Esmeralda', colorDorado:'#3ecf8e', colorRosa:'#8ee6c0', colorFondo:'#07120d', colorTexto:'#eafbf3' },
+  { nombre:'Violeta real', colorDorado:'#b48cf0', colorRosa:'#f0a0e0', colorFondo:'#0e0a17', colorTexto:'#f5eefb' },
+  { nombre:'Azul medianoche', colorDorado:'#5aa9e6', colorRosa:'#8fd3f4', colorFondo:'#060c14', colorTexto:'#eef6fb' },
+  { nombre:'Blanco elegante', colorDorado:'#b8860b', colorRosa:'#d6336c', colorFondo:'#ffffff', colorTexto:'#1a1a1a' },
+  { nombre:'Blanco menta', colorDorado:'#0d9488', colorRosa:'#d6336c', colorFondo:'#f6fdfb', colorTexto:'#0b2b26' },
+];
+
+let logoTipoEdit = 'texto', logoArchivoPendiente = null, logoPreviewLocal = null;
+let heroTipoEdit = 'color', heroArchivoPendiente = null, heroPreviewLocal = null;
+let slotsImagenes = [ {url:null,file:null}, {url:null,file:null}, {url:null,file:null} ];
+let slotActivo = 0;
+let resultadoIAPendiente = null;
+
+/* ---------------- SESION / AUTH ---------------- */
+function guardarSesion(s) { session = s; try { localStorage.setItem(SESSION_KEY, JSON.stringify(s)); } catch(e) {} }
+function cargarSesionLocal() {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    session = raw ? JSON.parse(raw) : null;
+  } catch(e) { session = null; }
+}
+function limpiarSesion() { session = null; try { localStorage.removeItem(SESSION_KEY); } catch(e) {} }
+
+async function refrescarSesion() {
+  if(!session?.refresh_token) return false;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`, {
+      method:'POST',
+      headers: { apikey: SUPABASE_KEY, 'Content-Type':'application/json' },
+      body: JSON.stringify({ refresh_token: session.refresh_token })
+    });
+    const data = await res.json();
+    if(!res.ok) return false;
+    guardarSesion({ access_token: data.access_token, refresh_token: data.refresh_token, expires_at: Date.now() + (data.expires_in*1000), user: data.user });
+    return true;
+  } catch(e) { return false; }
+}
+
+function headersAuth() {
+  return {
+    apikey: SUPABASE_KEY,
+    Authorization: 'Bearer ' + (session?.access_token || SUPABASE_KEY),
+    'Content-Type':'application/json',
+    'Prefer':'return=representation'
+  };
+}
+function headersPublic() {
+  return { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY, 'Content-Type':'application/json' };
+}
+
+// fetch autenticado con 1 reintento si el token expiró
+async function authFetch(url, opts) {
+  if(session?.expires_at && Date.now() > session.expires_at - 30000) await refrescarSesion();
+  let res = await fetch(url, opts);
+  if(res.status === 401 && session) {
+    const ok = await refrescarSesion();
+    if(ok) {
+      opts.headers = { ...opts.headers, Authorization: 'Bearer ' + session.access_token };
+      res = await fetch(url, opts);
+    }
+  }
+  return res;
+}
+
+async function intentarLogin() {
+  const email = document.getElementById('li-email').value.trim();
+  const password = document.getElementById('li-password').value;
+  const errBox = document.getElementById('login-error');
+  errBox.style.display = 'none';
+  if(!email || !password) { errBox.textContent = 'Completa correo y contraseña'; errBox.style.display='block'; return; }
+
+  const btn = document.getElementById('btn-login-entrar');
+  btn.disabled = true; btn.textContent = 'Entrando...';
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+      method:'POST',
+      headers: { apikey: SUPABASE_KEY, 'Content-Type':'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if(!res.ok) {
+      errBox.textContent = data.error_description || data.msg || 'Correo o contraseña incorrectos';
+      errBox.style.display = 'block';
+      btn.disabled = false; btn.textContent = 'Entrar a mi panel';
+      return;
+    }
+    guardarSesion({ access_token:data.access_token, refresh_token:data.refresh_token, expires_at: Date.now() + (data.expires_in*1000), user:data.user });
+    await resolverTiendaYArrancar();
+  } catch(e) {
+    errBox.textContent = 'Sin conexión o error inesperado';
+    errBox.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Entrar a mi panel';
+  }
+}
+
+function cerrarSesionApp() {
+  limpiarSesion();
+  tienda = null;
+  document.getElementById('panel-shell').classList.remove('activo');
+  document.getElementById('tabbar').style.display = 'none';
+  document.getElementById('estado-sin-tienda').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('li-password').value = '';
+}
+
+async function resolverTiendaYArrancar() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('estado-sin-tienda').style.display = 'none';
+  try {
+    const res = await authFetch(`${SUPABASE_URL}/rest/v1/tiendas?owner_id=eq.${session.user.id}&select=*`, { headers: headersAuth() });
+    const rows = await res.json();
+    if(!res.ok || !Array.isArray(rows) || !rows.length) {
+      document.getElementById('estado-sin-tienda').style.display = 'flex';
+      return;
+    }
+    tienda = rows[0];
+    document.getElementById('tienda-actual-nombre').textContent = tienda.nombre;
+    document.getElementById('link-publico-txt').textContent = `vendiwa.com/?tienda=${tienda.slug}`;
+    document.getElementById('panel-shell').classList.add('activo');
+    document.getElementById('tabbar').style.display = 'flex';
+    await cargarTodoPanel();
+  } catch(e) {
+    document.getElementById('login-screen').style.display = 'flex';
+    toastPanel('Sin conexión, intenta de nuevo');
+  }
+}
+
+function copiarLinkPublico() {
+  const texto = `vendiwa.com/?tienda=${tienda.slug}`;
+  if(navigator.clipboard) {
+    navigator.clipboard.writeText(texto).then(()=>toastPanel('✓ Link copiado')).catch(()=>toastPanel('No se pudo copiar'));
+  } else {
+    toastPanel('No se pudo copiar automáticamente');
+  }
+}
+
+/* ---------------- TABS ---------------- */
+function cambiarTab(tab) {
+  tabActual = tab;
+  document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('activo'));
+  document.getElementById('tab-' + tab).classList.add('activo');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('activo', b.dataset.tab === tab));
+  window.scrollTo({top:0, behavior:'instant'});
+}
+
+/* ---------------- CARGA GENERAL ---------------- */
+async function cargarTodoPanel() {
+  cambiarTab('productos');
+  mostrarSkeletonsProductos();
+  await Promise.all([
+    cargarProductosPanel(),
+    cargarConfigPanel(),
+    cargarMetodosPagoPanel()
+  ]);
+  renderListaProductos();
+  llenarFormPersonalizacionPanel();
+  llenarFormAjustesTiendaPanel();
+  llenarFormLogoPanel();
+  llenarFormHeroPanel();
+  llenarFormRedesPanel();
+  renderMetodosPanel();
+}
+
+async function cargarProductosPanel() {
+  const res = await authFetch(`${SUPABASE_URL}/rest/v1/productos?tienda_id=eq.${tienda.id}&order=id.asc`, { headers: headersAuth() });
+  productos = res.ok ? await res.json() : [];
+}
+
+async function cargarConfigPanel() {
+  try {
+    const res = await authFetch(`${SUPABASE_URL}/rest/v1/config?tienda_id=eq.${tienda.id}&select=key,value`, { headers: headersAuth() });
+    const rows = res.ok ? await res.json() : [];
+    const mapa = {};
+    rows.forEach(r => { try { mapa[r.key] = JSON.parse(r.value); } catch(e) { mapa[r.key] = r.value; } });
+    currentSettings = { ...DEFAULT_SETTINGS, ...(mapa.catalog_settings||{}) };
+    storeSettings = { ...DEFAULT_STORE_SETTINGS, ...(mapa.store_settings||{}) };
+    logoSettings = { ...DEFAULT_LOGO_SETTINGS, ...(mapa.logo_settings||{}) };
+    heroSettings = { ...DEFAULT_HERO_SETTINGS, ...(mapa.hero_settings||{}) };
+    socialSettings = { ...JSON.parse(JSON.stringify(DEFAULT_SOCIAL_SETTINGS)), ...(mapa.social_settings||{}) };
+  } catch(e) { /* usa los valores por defecto */ }
+}
+
+async function guardarConfigKey(key, value) {
+  const res = await authFetch(`${SUPABASE_URL}/rest/v1/config?on_conflict=tienda_id,key`, {
+    method:'POST',
+    headers: { ...headersAuth(), 'Prefer':'resolution=merge-duplicates,return=representation' },
+    body: JSON.stringify({ tienda_id: tienda.id, key, value: JSON.stringify(value) })
+  });
+  return res.ok;
+}
+
+async function cargarMetodosPagoPanel() {
+  const res = await authFetch(`${SUPABASE_URL}/rest/v1/catalogo_metodos_pago?tienda_id=eq.${tienda.id}&order=created_at.asc`, { headers: headersAuth() });
+  metodosPago = res.ok ? await res.json() : [];
+}
+
+function imagenesDe(p) {
+  if(Array.isArray(p.imagenes) && p.imagenes.filter(Boolean).length) return p.imagenes.filter(Boolean);
+  return p.imagen_url ? [p.imagen_url] : [];
+}
+function formatPrecio(n) { return (storeSettings.simboloMoneda||'$') + ' ' + Number(n).toLocaleString('es-CO'); }
+
+/* ---------------- PRODUCTOS: LISTA ---------------- */
+function mostrarSkeletonsProductos() {
+  const w = document.getElementById('productos-lista');
+  let h = '';
+  for(let i=0;i<4;i++) h += `<div class="skel-panel"></div>`;
+  w.innerHTML = h;
+}
+
+function renderListaProductos() {
+  const q = (document.getElementById('prod-buscar').value||'').toLowerCase();
+  const lista = productos.filter(p => p.nombre.toLowerCase().includes(q) || p.producto_id.includes(q));
+  const w = document.getElementById('productos-lista');
+  if(!lista.length) {
+    w.innerHTML = `<div class="empty-panel"><div class="ico">🛍</div><p>${productos.length ? 'Sin resultados para tu búsqueda' : 'Aún no tienes productos. Toca ＋ para agregar el primero.'}</p></div>`;
+    return;
+  }
+  w.innerHTML = lista.map(p => {
+    const portada = imagenesDe(p)[0];
+    const img = portada ? `<img src="${portada}" alt="${p.nombre}">` : `<div class="no-img">🛍</div>`;
+    return `<div class="prod-item">
+      ${img}
+      <div class="prod-item-info">
+        <div class="prod-item-nombre">${p.nombre}</div>
+        <div class="prod-item-precio">${formatPrecio(p.precio)}</div>
+        <span class="prod-item-badge ${p.activo?'on':'off'}">${p.activo?'Activo':'Oculto'}</span>
+      </div>
+      <div class="prod-item-actions">
+        <button title="Editar" onclick="abrirEditarProducto(${p.id})">✏️</button>
+        <button title="Texto de venta IA" onclick="abrirVentaIAPanel(${p.id})">📢</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ---------------- PRODUCTOS: EDITAR / CREAR ---------------- */
+function abrirEditarProducto(id) {
+  editandoProductoId = id;
+  const p = id ? productos.find(x=>x.id===id) : null;
+  document.getElementById('modal-producto-titulo').textContent = p ? 'Editar producto' : 'Nuevo producto';
+  document.getElementById('e-id').value = p?.producto_id || '';
+  document.getElementById('e-nombre').value = p?.nombre || '';
+  document.getElementById('e-desc').value = p?.descripcion || '';
+  document.getElementById('e-precio').value = p?.precio || '';
+  document.getElementById('e-activo').checked = p ? !!p.activo : true;
+  document.getElementById('img-file-input-panel').value = '';
+  document.getElementById('upload-status-panel').style.display = 'none';
+  document.getElementById('btn-eliminar-producto-panel').style.display = p ? 'block' : 'none';
+
+  const existentes = p ? imagenesDe(p) : [];
+  slotsImagenes = [0,1,2].map(i => ({ url: existentes[i] || null, file: null }));
+  renderSlotsPanel();
+
+  document.getElementById('modal-producto').classList.add('activo');
+}
+function cerrarEditarProducto() { document.getElementById('modal-producto').classList.remove('activo'); }
+
+function renderSlotsPanel() {
+  const wrap = document.getElementById('img-slots-panel');
+  wrap.innerHTML = slotsImagenes.map((slot,i) => {
+    const preview = slot.file ? slot._localPreview : slot.url;
+    return `<div class="img-slot-panel${preview?' has-img':''}" onclick="clickSlotPanel(${i})">
+      ${preview ? `<img src="${preview}">` : `<span class="plus">＋</span>`}
+      <button type="button" class="remove" onclick="event.stopPropagation();quitarSlotPanel(${i})">✕</button>
+      <button type="button" class="ia-tag" onclick="event.stopPropagation();abrirIAImagenPanel(${i})">✨ IA</button>
+    </div>`;
+  }).join('');
+}
+function clickSlotPanel(i) { slotActivo = i; document.getElementById('img-file-input-panel').click(); }
+function quitarSlotPanel(i) { slotsImagenes[i] = {url:null,file:null}; renderSlotsPanel(); }
+function onArchivoProductoPanel(input) {
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => { slotsImagenes[slotActivo] = { url:slotsImagenes[slotActivo].url, file, _localPreview:e.target.result }; renderSlotsPanel(); };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+
+async function subirImagenStorage(file, path) {
+  const res = await authFetch(`${SUPABASE_URL}/storage/v1/object/${BUCKET}/${path}`, {
+    method:'POST',
+    headers: { apikey: SUPABASE_KEY, Authorization:'Bearer '+session.access_token, 'Content-Type':file.type, 'x-upsert':'true' },
+    body: file
+  });
+  if(!res.ok) return null;
+  return `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${path}`;
+}
+
+async function guardarProductoPanel() {
+  const productoId = document.getElementById('e-id').value.trim();
+  const nombre = document.getElementById('e-nombre').value.trim();
+  const precio = Number(document.getElementById('e-precio').value);
+  if(!productoId || !nombre || !precio) { toastPanel('Completa ID, nombre y precio'); return; }
+
+  const statusEl = document.getElementById('upload-status-panel');
+  const imagenesFinal = [];
+  for(let i=0;i<slotsImagenes.length;i++) {
+    const slot = slotsImagenes[i];
+    if(slot.file) {
+      statusEl.style.display='block'; statusEl.textContent = `⏳ Subiendo foto ${i+1}...`;
+      const path = `${tienda.id}/${productoId}-${i}-${Date.now()}.${(slot.file.name.split('.').pop()||'jpg').toLowerCase()}`;
+      const url = await subirImagenStorage(slot.file, path);
+      if(!url) { statusEl.style.display='none'; toastPanel('Error al subir una foto'); return; }
+      imagenesFinal.push(url);
+    } else if(slot.url) imagenesFinal.push(slot.url);
+  }
+  statusEl.style.display = 'none';
+
+  const body = {
+    tienda_id: tienda.id,
+    producto_id: productoId,
+    nombre,
+    descripcion: document.getElementById('e-desc').value.trim(),
+    precio,
+    activo: document.getElementById('e-activo').checked,
+    imagen_url: imagenesFinal[0] || null,
+    imagenes: imagenesFinal,
+    updated_at: new Date().toISOString()
+  };
+
+  let res;
+  if(editandoProductoId) {
+    res = await authFetch(`${SUPABASE_URL}/rest/v1/productos?id=eq.${editandoProductoId}&tienda_id=eq.${tienda.id}`, { method:'PATCH', headers: headersAuth(), body: JSON.stringify(body) });
+  } else {
+    res = await authFetch(`${SUPABASE_URL}/rest/v1/productos`, { method:'POST', headers: headersAuth(), body: JSON.stringify(body) });
+  }
+  if(res.ok) {
+    cerrarEditarProducto(); toastPanel('✓ Producto guardado');
+    await cargarProductosPanel(); renderListaProductos();
+  } else { toastPanel('Error al guardar el producto'); }
+}
+
+async function eliminarProductoPanel() {
+  if(!editandoProductoId) return;
+  if(!confirm('¿Eliminar este producto? Esta acción no se puede deshacer.')) return;
+  const res = await authFetch(`${SUPABASE_URL}/rest/v1/productos?id=eq.${editandoProductoId}&tienda_id=eq.${tienda.id}`, { method:'DELETE', headers: headersAuth() });
+  if(res.ok) {
+    cerrarEditarProducto(); toastPanel('Producto eliminado');
+    await cargarProductosPanel(); renderListaProductos();
+  } else { toastPanel('Error al eliminar'); }
+}
+
+/* ---------------- IA: DESCRIPCIÓN ---------------- */
+async function obtenerBase64DeSlot(i) {
+  const slot = slotsImagenes[i];
+  let blob;
+  if(slot.file) blob = slot.file;
+  else if(slot.url) { const r = await fetch(slot.url); blob = await r.blob(); }
+  else return null;
+  const dataUrl = await new Promise((resolve,reject) => { const r = new FileReader(); r.onload=()=>resolve(r.result); r.onerror=reject; r.readAsDataURL(blob); });
+  const [meta,data] = dataUrl.split(',');
+  const mimeType = meta.match(/data:(.*);base64/)[1] || blob.type || 'image/jpeg';
+  return { data, mimeType };
+}
+
+async function generarDescripcionIAPanel() {
+  const slotsConImagen = slotsImagenes.filter(s => s.file || s.url);
+  if(!slotsConImagen.length) { toastPanel('Sube al menos una foto antes de generar la descripción'); return; }
+  const btn = document.getElementById('btn-generar-desc-panel');
+  const original = btn.textContent;
+  btn.disabled = true; btn.textContent = '⏳ Analizando fotos...';
+  try {
+    const imagenesBase64 = [];
+    for(let i=0;i<slotsImagenes.length;i++) {
+      if(slotsImagenes[i].file || slotsImagenes[i].url) imagenesBase64.push(await obtenerBase64DeSlot(i));
+    }
+    const nombreProducto = document.getElementById('e-nombre').value.trim();
+    const res = await authFetch(`${SUPABASE_URL}/functions/v1/generar-descripcion-ia`, {
+      method:'POST',
+      headers: { 'Content-Type':'application/json', Authorization:'Bearer '+session.access_token, apikey: SUPABASE_KEY },
+      body: JSON.stringify({ imagenes: imagenesBase64, nombreProducto })
+    });
+    const resultado = await res.json();
+    if(!res.ok || resultado.error) { toastPanel(resultado.error || 'No se pudo generar la descripción'); return; }
+    document.getElementById('e-desc').value = resultado.descripcion;
+    toastPanel('✓ Descripción generada. Revísala antes de guardar.');
+  } catch(e) { toastPanel('Sin conexión al generar la descripción'); }
+  finally { btn.disabled = false; btn.textContent = original; }
+}
+
+/* ---------------- IA: MEJORAR FOTO ---------------- */
+const IA_PRESETS = [
+  { id:'fondo_blanco', emoji:'🤍', titulo:'Fondo blanco liso', desc:'Estilo catálogo / e-commerce' },
+  { id:'estudio_suave', emoji:'🎀', titulo:'Estudio con luz suave', desc:'Look más premium' },
+  { id:'con_modelo', emoji:'👤', titulo:'Con modelo mostrando el producto', desc:'Puede ser rechazado por filtros según el producto' },
+  { id:'libre', emoji:'✍️', titulo:'Prompt libre', desc:'Escribe tu propia instrucción' },
+];
+
+function abrirIAImagenPanel(i) { slotActivo = i; document.getElementById('modal-ia-imagen').classList.add('activo'); renderIAPresetsPanel(); }
+function cerrarIAImagenPanel() { document.getElementById('modal-ia-imagen').classList.remove('activo'); }
+
+function renderIAPresetsPanel() {
+  const box = document.getElementById('ia-imagen-box');
+  box.innerHTML = `
+    <div class="modal-cerrar-panel"><span onclick="cerrarIAImagenPanel()">✕</span></div>
+    <h3>✨ Mejorar foto con IA</h3>
+    <div class="ayuda-txt-panel" style="margin-bottom:14px;">Elige cómo transformar esta foto. Verás el resultado antes de reemplazarla.</div>
+    <div class="ia-presets-panel">
+      ${IA_PRESETS.map(p => `<button type="button" class="ia-preset-btn-panel" onclick="onSeleccionarPresetPanel('${p.id}')">
+        <span>${p.emoji}</span><span><div>${p.titulo}</div><div class="d">${p.desc}</div></span>
+      </button>`).join('')}
+    </div>`;
+}
+
+function onSeleccionarPresetPanel(preset) {
+  if(preset === 'libre') renderIALibrePanel();
+  else ejecutarGeneracionImagenIAPanel(preset, null);
+}
+function renderIALibrePanel() {
+  const box = document.getElementById('ia-imagen-box');
+  box.innerHTML = `
+    <button type="button" class="ia-back-btn-panel" onclick="renderIAPresetsPanel()">‹ Volver</button>
+    <h3>✍️ Prompt libre</h3>
+    <div class="form-group"><textarea id="ia-prompt-libre-panel" placeholder="Ej: fondo rosa pastel con pétalos, iluminación suave..."></textarea></div>
+    <button type="button" class="btn-primario-panel" onclick="ejecutarGeneracionImagenIAPanel('libre', document.getElementById('ia-prompt-libre-panel').value)">Generar imagen</button>`;
+}
+function renderIACargandoPanel(mensaje) {
+  document.getElementById('ia-imagen-box').innerHTML = `<div class="ia-estado-panel"><div class="ia-spinner-panel"></div><div>${mensaje}</div></div>`;
+}
+function renderIAErrorPanel(mensaje, presetRetry) {
+  document.getElementById('ia-imagen-box').innerHTML = `
+    <h3>✨ Mejorar foto con IA</h3>
+    <div class="ia-error-box-panel">⚠️ ${mensaje}</div>
+    <button type="button" class="btn-primario-panel" onclick="onSeleccionarPresetPanel('${presetRetry}')">Intentar de nuevo</button>
+    <button type="button" class="btn-secundario-panel" style="margin-top:9px;" onclick="cerrarIAImagenPanel()">Cerrar</button>`;
+}
+
+async function ejecutarGeneracionImagenIAPanel(preset, promptLibre) {
+  if(preset==='libre' && !(promptLibre||'').trim()) { toastPanel('Escribe una instrucción para el prompt libre'); return; }
+  const slot = slotsImagenes[slotActivo];
+  if(!slot.file && !slot.url) { toastPanel('Primero sube una foto en este espacio'); return; }
+  renderIACargandoPanel('⏳ Preparando imagen...');
+  try {
+    const { data, mimeType } = await obtenerBase64DeSlot(slotActivo);
+    renderIACargandoPanel('⏳ Generando imagen con IA...');
+    const res = await authFetch(`${SUPABASE_URL}/functions/v1/generar-imagen-ia`, {
+      method:'POST',
+      headers: { 'Content-Type':'application/json', Authorization:'Bearer '+session.access_token, apikey: SUPABASE_KEY },
+      body: JSON.stringify({ imageBase64:data, mimeType, preset, promptLibre })
+    });
+    const resultado = await res.json();
+    if(!res.ok || resultado.error) { renderIAErrorPanel(resultado.error || 'No se pudo generar la imagen.', preset); return; }
+    resultadoIAPendiente = resultado;
+    renderIAPreviewPanel(resultado, preset);
+  } catch(e) { renderIAErrorPanel('Sin conexión o error inesperado.', preset); }
+}
+
+function renderIAPreviewPanel(resultado, preset) {
+  const src = `data:${resultado.mimeType};base64,${resultado.imageBase64}`;
+  document.getElementById('ia-imagen-box').innerHTML = `
+    <h3>✨ Resultado</h3>
+    <div class="ia-preview-img-panel"><img src="${src}"></div>
+    <button type="button" class="btn-primario-panel" onclick="usarResultadoIAPanel()">Usar esta imagen</button>
+    <button type="button" class="btn-secundario-panel" style="margin-top:9px;" onclick="onSeleccionarPresetPanel('${preset}')">Probar otra vez</button>
+    <button type="button" class="btn-secundario-panel" style="margin-top:9px;" onclick="cerrarIAImagenPanel()">Descartar</button>`;
+}
+function usarResultadoIAPanel() {
+  if(!resultadoIAPendiente) return;
+  const { imageBase64, mimeType } = resultadoIAPendiente;
+  const byteChars = atob(imageBase64);
+  const bytes = new Uint8Array(byteChars.length);
+  for(let i=0;i<byteChars.length;i++) bytes[i] = byteChars.charCodeAt(i);
+  const ext = mimeType.includes('png')?'png':(mimeType.includes('webp')?'webp':'jpg');
+  const file = new File([bytes], `ia-generada-${Date.now()}.${ext}`, { type: mimeType });
+  slotsImagenes[slotActivo] = { url:null, file, _localPreview:`data:${mimeType};base64,${imageBase64}` };
+  renderSlotsPanel();
+  resultadoIAPendiente = null;
+  cerrarIAImagenPanel();
+  toastPanel('✓ Imagen aplicada. Recuerda guardar el producto.');
+}
+
+/* ---------------- IA: TEXTO DE VENTA ---------------- */
+function abrirVentaIAPanel(id) {
+  const p = productos.find(x=>x.id===id);
+  if(!p) return;
+  if(!imagenesDe(p).length) { toastPanel('Este producto no tiene fotos. Sube al menos una para generar el texto.'); return; }
+  document.getElementById('modal-ia-venta').classList.add('activo');
+  renderVentaInicioPanel(p);
+}
+function cerrarVentaIAPanel() { document.getElementById('modal-ia-venta').classList.remove('activo'); }
+
+function renderVentaInicioPanel(p) {
+  const portada = imagenesDe(p)[0];
+  document.getElementById('ia-venta-box').innerHTML = `
+    <div class="modal-cerrar-panel"><span onclick="cerrarVentaIAPanel()">✕</span></div>
+    <h3>📢 Texto de venta con IA</h3>
+    <div class="ayuda-txt-panel" style="margin-bottom:14px;">Genera un texto listo para publicar en WhatsApp, Facebook o Instagram.</div>
+    <div style="display:flex;gap:12px;align-items:center;margin-bottom:16px;">
+      <img src="${portada}" style="width:60px;height:60px;object-fit:cover;border-radius:9px;">
+      <div><div style="font-weight:600;font-size:0.88rem;">${p.nombre}</div><div style="color:var(--vd-coral);font-weight:700;font-size:0.85rem;">${formatPrecio(p.precio)}</div></div>
+    </div>
+    <button type="button" class="btn-primario-panel" onclick="ejecutarGenerarVentaPanel(${p.id})">✨ Generar texto de venta</button>`;
+}
+function renderVentaCargandoPanel() {
+  document.getElementById('ia-venta-box').innerHTML = `<div class="ia-estado-panel"><div class="ia-spinner-panel"></div><div>⏳ Analizando producto...</div></div>`;
+}
+async function ejecutarGenerarVentaPanel(id) {
+  const p = productos.find(x=>x.id===id);
+  if(!p) return;
+  renderVentaCargandoPanel();
+  try {
+    const portada = imagenesDe(p)[0];
+    const blob = await (await fetch(portada)).blob();
+    const dataUrl = await new Promise((resolve,reject) => { const r=new FileReader(); r.onload=()=>resolve(r.result); r.onerror=reject; r.readAsDataURL(blob); });
+    const [meta,data] = dataUrl.split(',');
+    const mimeType = meta.match(/data:(.*);base64/)[1] || blob.type || 'image/jpeg';
+    const res = await authFetch(`${SUPABASE_URL}/functions/v1/generar-texto-venta-ia`, {
+      method:'POST',
+      headers: { 'Content-Type':'application/json', Authorization:'Bearer '+session.access_token, apikey: SUPABASE_KEY },
+      body: JSON.stringify({ imageBase64:data, mimeType, nombre:p.nombre, descripcion:p.descripcion, precioFormateado:formatPrecio(p.precio), productoId:p.producto_id })
+    });
+    const resultado = await res.json();
+    if(!res.ok || resultado.error) {
+      document.getElementById('ia-venta-box').innerHTML = `<h3>📢 Texto de venta</h3><div class="ia-error-box-panel">⚠️ ${resultado.error||'No se pudo generar el texto.'}</div><button class="btn-primario-panel" onclick="ejecutarGenerarVentaPanel(${id})">Intentar de nuevo</button>`;
+      return;
+    }
+    document.getElementById('ia-venta-box').innerHTML = `
+      <h3>📢 Texto de venta</h3>
+      <textarea class="venta-texto-resultado-panel" id="venta-texto-editable-panel">${resultado.texto}</textarea>
+      <button type="button" class="btn-primario-panel" onclick="copiarTextoVentaPanel()">🔗 Copiar texto</button>
+      <button type="button" class="btn-secundario-panel" style="margin-top:9px;" onclick="ejecutarGenerarVentaPanel(${id})">Generar otra versión</button>
+      <button type="button" class="btn-secundario-panel" style="margin-top:9px;" onclick="cerrarVentaIAPanel()">Cerrar</button>`;
+  } catch(e) {
+    document.getElementById('ia-venta-box').innerHTML = `<h3>📢 Texto de venta</h3><div class="ia-error-box-panel">⚠️ Sin conexión o error inesperado.</div><button class="btn-primario-panel" onclick="ejecutarGenerarVentaPanel(${id})">Intentar de nuevo</button>`;
+  }
+}
+function copiarTextoVentaPanel() {
+  const texto = document.getElementById('venta-texto-editable-panel').value;
+  if(navigator.clipboard) navigator.clipboard.writeText(texto).then(()=>toastPanel('✓ Copiado')).catch(()=>toastPanel('No se pudo copiar'));
+}
+
+/* ---------------- PERSONALIZACIÓN ---------------- */
+function llenarFormPersonalizacionPanel() {
+  document.getElementById('p-logo1').value = currentSettings.logoNombre1;
+  document.getElementById('p-logo2').value = currentSettings.logoNombre2;
+  document.getElementById('p-badge').value = currentSettings.badge;
+  document.getElementById('p-titulo').value = currentSettings.titulo;
+  document.getElementById('p-subtitulo').value = currentSettings.subtitulo;
+  document.getElementById('p-color1').value = currentSettings.colorDorado;
+  document.getElementById('p-color2').value = currentSettings.colorRosa;
+  document.getElementById('p-color-fondo').value = currentSettings.colorFondo;
+  document.getElementById('p-color-texto').value = currentSettings.colorTexto;
+  renderPaletasPanel();
+}
+function renderPaletasPanel() {
+  const wrap = document.getElementById('paletas-grid-panel');
+  wrap.innerHTML = PALETAS.map((p,i) => `<div class="paleta-card-panel" data-idx="${i}" onclick="aplicarPaletaPanel(${i})" title="${p.nombre}">
+    <div class="paleta-swatches-panel"><span style="background:${p.colorFondo}"></span><span style="background:${p.colorDorado}"></span><span style="background:${p.colorRosa}"></span><span style="background:${p.colorTexto}"></span></div>
+    <div class="paleta-nombre-panel">${p.nombre}</div></div>`).join('');
+  marcarPaletaActivaPanel();
+}
+function aplicarPaletaPanel(i) {
+  const p = PALETAS[i];
+  document.getElementById('p-color1').value = p.colorDorado;
+  document.getElementById('p-color2').value = p.colorRosa;
+  document.getElementById('p-color-fondo').value = p.colorFondo;
+  document.getElementById('p-color-texto').value = p.colorTexto;
+  marcarPaletaActivaPanel();
+}
+function marcarPaletaActivaPanel() {
+  const actuales = {
+    colorDorado: document.getElementById('p-color1').value, colorRosa: document.getElementById('p-color2').value,
+    colorFondo: document.getElementById('p-color-fondo').value, colorTexto: document.getElementById('p-color-texto').value
+  };
+  document.querySelectorAll('.paleta-card-panel').forEach(card => {
+    const p = PALETAS[Number(card.dataset.idx)];
+    card.classList.toggle('activa', p.colorDorado===actuales.colorDorado && p.colorRosa===actuales.colorRosa && p.colorFondo===actuales.colorFondo && p.colorTexto===actuales.colorTexto);
+  });
+}
+async function guardarPersonalizacionPanel() {
+  const s = {
+    logoNombre1: document.getElementById('p-logo1').value.trim() || DEFAULT_SETTINGS.logoNombre1,
+    logoNombre2: document.getElementById('p-logo2').value.trim() || DEFAULT_SETTINGS.logoNombre2,
+    badge: document.getElementById('p-badge').value.trim() || DEFAULT_SETTINGS.badge,
+    titulo: document.getElementById('p-titulo').value.trim() || DEFAULT_SETTINGS.titulo,
+    subtitulo: document.getElementById('p-subtitulo').value.trim() || DEFAULT_SETTINGS.subtitulo,
+    colorDorado: document.getElementById('p-color1').value, colorRosa: document.getElementById('p-color2').value,
+    colorFondo: document.getElementById('p-color-fondo').value, colorTexto: document.getElementById('p-color-texto').value
+  };
+  const ok = await guardarConfigKey('catalog_settings', s);
+  if(ok) { currentSettings = s; toastPanel('✓ Estilo guardado'); } else toastPanel('Error al guardar el estilo');
+}
+
+/* ---------------- LOGOTIPO ---------------- */
+function llenarFormLogoPanel() {
+  logoTipoEdit = logoSettings.tipo; logoArchivoPendiente = null; logoPreviewLocal = logoSettings.imagenUrl;
+  actualizarUILogoPanel();
+}
+function cambiarTipoLogoPanel(tipo) { logoTipoEdit = tipo; actualizarUILogoPanel(); }
+function actualizarUILogoPanel() {
+  document.getElementById('logo-tipo-btn-texto').classList.toggle('activo', logoTipoEdit==='texto');
+  document.getElementById('logo-tipo-btn-imagen').classList.toggle('activo', logoTipoEdit==='imagen');
+  document.getElementById('logo-imagen-wrap-panel').style.display = logoTipoEdit==='imagen' ? 'block' : 'none';
+  const claro = document.getElementById('logo-preview-claro-panel'), oscuro = document.getElementById('logo-preview-oscuro-panel');
+  if(logoPreviewLocal) { claro.innerHTML = `<img src="${logoPreviewLocal}">`; oscuro.innerHTML = `<img src="${logoPreviewLocal}">`; }
+  else { claro.innerHTML = '<span class="logo-preview-vacio-panel">Sin logo</span>'; oscuro.innerHTML = '<span class="logo-preview-vacio-panel">Sin logo</span>'; }
+}
+function onLogoArchivoPanel(input) {
+  const file = input.files[0];
+  if(!file) return;
+  if(file.type !== 'image/png') { toastPanel('Sube un archivo PNG'); input.value=''; return; }
+  const reader = new FileReader();
+  reader.onload = e => { logoArchivoPendiente = file; logoPreviewLocal = e.target.result; actualizarUILogoPanel(); };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+async function guardarLogoPanel() {
+  let imagenUrl = logoSettings.imagenUrl;
+  if(logoTipoEdit === 'imagen') {
+    if(logoArchivoPendiente) {
+      const path = `${tienda.id}/logo-${Date.now()}.png`;
+      const url = await subirImagenStorage(logoArchivoPendiente, path);
+      if(!url) { toastPanel('Error al subir el logo'); return; }
+      imagenUrl = url;
+    } else if(!imagenUrl) { toastPanel('Sube un logo en PNG antes de guardar'); return; }
+  }
+  const s = { tipo: logoTipoEdit, imagenUrl };
+  const ok = await guardarConfigKey('logo_settings', s);
+  if(ok) { logoSettings = s; logoArchivoPendiente = null; toastPanel('✓ Logotipo guardado'); } else toastPanel('Error al guardar el logotipo');
+}
+
+/* ---------------- HERO ---------------- */
+function llenarFormHeroPanel() {
+  heroTipoEdit = heroSettings.tipoFondo; heroArchivoPendiente = null; heroPreviewLocal = heroSettings.imagenUrl;
+  document.getElementById('hero-overlay-slider-panel').value = heroSettings.overlay;
+  actualizarUIHeroPanel();
+}
+function cambiarTipoHeroPanel(tipo) { heroTipoEdit = tipo; actualizarUIHeroPanel(); }
+function actualizarUIHeroPanel() {
+  document.getElementById('hero-tipo-btn-color').classList.toggle('activo', heroTipoEdit==='color');
+  document.getElementById('hero-tipo-btn-imagen').classList.toggle('activo', heroTipoEdit==='imagen');
+  document.getElementById('hero-imagen-wrap-panel').style.display = heroTipoEdit==='imagen' ? 'block' : 'none';
+  document.getElementById('hero-preview-mini-panel').style.backgroundImage = heroPreviewLocal ? `url('${heroPreviewLocal}')` : '';
+  previsualizarOverlayHeroPanel();
+}
+function previsualizarOverlayHeroPanel() {
+  const val = document.getElementById('hero-overlay-slider-panel').value;
+  document.getElementById('hero-preview-ov-panel').style.background = `rgba(0,0,0,${val/100})`;
+}
+function comprimirImagenPanel(file, maxWidth) {
+  return new Promise((resolve,reject) => {
+    const img = new Image(); const reader = new FileReader();
+    reader.onload = e => { img.src = e.target.result; };
+    reader.onerror = reject;
+    img.onload = () => {
+      const escala = Math.min(1, maxWidth/img.width);
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width*escala; canvas.height = img.height*escala;
+      canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+      canvas.toBlob(blob => resolve(new File([blob], file.name.replace(/\.[^.]+$/,'.jpg'), {type:'image/jpeg'})), 'image/jpeg', 0.85);
+    };
+    img.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+async function onHeroArchivoPanel(input) {
+  const file = input.files[0];
+  if(!file) return;
+  input.value = '';
+  try {
+    const comprimida = await comprimirImagenPanel(file, 1600);
+    heroArchivoPendiente = comprimida;
+    const reader = new FileReader();
+    reader.onload = e => { heroPreviewLocal = e.target.result; actualizarUIHeroPanel(); };
+    reader.readAsDataURL(comprimida);
+  } catch(e) { toastPanel('No se pudo procesar la imagen'); }
+}
+async function guardarHeroPanel() {
+  let imagenUrl = heroSettings.imagenUrl;
+  const overlay = Number(document.getElementById('hero-overlay-slider-panel').value);
+  if(heroTipoEdit === 'imagen') {
+    if(heroArchivoPendiente) {
+      const path = `${tienda.id}/hero-${Date.now()}.jpg`;
+      const url = await subirImagenStorage(heroArchivoPendiente, path);
+      if(!url) { toastPanel('Error al subir la imagen'); return; }
+      imagenUrl = url;
+    } else if(!imagenUrl) { toastPanel('Sube una imagen de fondo antes de guardar'); return; }
+  }
+  const s = { tipoFondo: heroTipoEdit, imagenUrl, overlay };
+  const ok = await guardarConfigKey('hero_settings', s);
+  if(ok) { heroSettings = s; heroArchivoPendiente = null; toastPanel('✓ Fondo guardado'); } else toastPanel('Error al guardar el fondo');
+}
+
+/* ---------------- AJUSTES DE TIENDA ---------------- */
+function llenarFormAjustesTiendaPanel() {
+  document.getElementById('a-moneda').value = storeSettings.simboloMoneda;
+  document.getElementById('a-pedidos-wpp').checked = !!storeSettings.pedidosWhatsapp;
+  document.getElementById('a-consultas-wpp').checked = !!storeSettings.consultasWhatsapp;
+  document.getElementById('a-whatsapp').value = storeSettings.whatsappNumero;
+}
+async function guardarAjustesTiendaPanel() {
+  const pedidos = document.getElementById('a-pedidos-wpp').checked;
+  const consultas = document.getElementById('a-consultas-wpp').checked;
+  const numero = document.getElementById('a-whatsapp').value.replace(/\D/g,'');
+  if((pedidos||consultas) && !numero) { toastPanel('Agrega tu número de WhatsApp para activar esta función'); return; }
+  const s = { simboloMoneda: document.getElementById('a-moneda').value.trim() || DEFAULT_STORE_SETTINGS.simboloMoneda, pedidosWhatsapp:pedidos, consultasWhatsapp:consultas, whatsappNumero:numero };
+  const ok = await guardarConfigKey('store_settings', s);
+  if(ok) { storeSettings = s; document.getElementById('a-whatsapp').value = numero; toastPanel('✓ Ajustes guardados'); } else toastPanel('Error al guardar');
+}
+
+/* ---------------- REDES SOCIALES ---------------- */
+function llenarFormRedesPanel() {
+  document.getElementById('red-instagram-activo').checked = !!socialSettings.instagram?.activo;
+  document.getElementById('red-instagram-link').value = socialSettings.instagram?.link||'';
+  document.getElementById('red-facebook-activo').checked = !!socialSettings.facebook?.activo;
+  document.getElementById('red-facebook-link').value = socialSettings.facebook?.link||'';
+  document.getElementById('red-tiktok-activo').checked = !!socialSettings.tiktok?.activo;
+  document.getElementById('red-tiktok-link').value = socialSettings.tiktok?.link||'';
+}
+async function guardarRedesPanel() {
+  const s = {
+    instagram: { activo: document.getElementById('red-instagram-activo').checked, link: document.getElementById('red-instagram-link').value.trim() },
+    facebook: { activo: document.getElementById('red-facebook-activo').checked, link: document.getElementById('red-facebook-link').value.trim() },
+    tiktok: { activo: document.getElementById('red-tiktok-activo').checked, link: document.getElementById('red-tiktok-link').value.trim() }
+  };
+  const ok = await guardarConfigKey('social_settings', s);
+  if(ok) { socialSettings = s; toastPanel('✓ Redes sociales guardadas'); } else toastPanel('Error al guardar');
+}
+
+/* ---------------- METODOS DE PAGO ---------------- */
+function renderMetodosPanel() {
+  const w = document.getElementById('metodos-lista-panel');
+  if(!metodosPago.length) { w.innerHTML = `<div class="empty-panel"><div class="ico">💳</div><p>Aún no has agregado métodos de pago</p></div>`; return; }
+  w.innerHTML = metodosPago.map(m => `<div class="metodo-item-panel">
+    <div class="metodo-item-info-panel"><b>${m.banco}</b><span>${m.titular} · ${m.numero}</span></div>
+    <div class="metodo-item-actions-panel">
+      <button onclick="abrirEditarMetodoPanel('${m.id}')">✏️</button>
+      <button onclick="eliminarMetodoPanel('${m.id}','${m.banco.replace(/'/g,"\\'")}')">🗑️</button>
+    </div></div>`).join('');
+}
+function llenarSelectBancosPanel() {
+  const sel = document.getElementById('m-banco-select-panel');
+  sel.innerHTML = '<option value="">Selecciona una opción...</option>' + BANCOS_COLOMBIA.map(b=>`<option value="${b}">${b}</option>`).join('');
+}
+function onCambioBancoPanel() {
+  document.getElementById('m-banco-otro-wrap-panel').style.display = document.getElementById('m-banco-select-panel').value==='Otro' ? 'block':'none';
+}
+function abrirEditarMetodoPanel(id) {
+  editandoMetodoId = id;
+  const m = id ? metodosPago.find(x=>x.id===id) : null;
+  document.getElementById('metodo-titulo-panel').textContent = m ? 'Editar método de pago' : 'Nuevo método de pago';
+  llenarSelectBancosPanel();
+  const esConocido = m && BANCOS_COLOMBIA.includes(m.banco);
+  document.getElementById('m-banco-select-panel').value = m ? (esConocido?m.banco:'Otro') : '';
+  document.getElementById('m-banco-otro-wrap-panel').style.display = (m && !esConocido) ? 'block' : 'none';
+  document.getElementById('m-banco-otro-panel').value = (m && !esConocido) ? m.banco : '';
+  document.getElementById('m-titular-panel').value = m?.titular || '';
+  document.getElementById('m-cedula-panel').value = m?.cedula || '';
+  document.getElementById('m-numero-panel').value = m?.numero || '';
+  document.getElementById('modal-metodo').classList.add('activo');
+}
+function cerrarEditarMetodoPanel() { document.getElementById('modal-metodo').classList.remove('activo'); }
+async function guardarMetodoPanel() {
+  const seleccion = document.getElementById('m-banco-select-panel').value;
+  const banco = seleccion==='Otro' ? document.getElementById('m-banco-otro-panel').value.trim() : seleccion;
+  const titular = document.getElementById('m-titular-panel').value.trim();
+  const cedula = document.getElementById('m-cedula-panel').value.trim();
+  const numero = document.getElementById('m-numero-panel').value.trim();
+  if(!banco || !titular || !numero) { toastPanel('Completa banco, titular y número'); return; }
+  const body = { tienda_id:tienda.id, banco, titular, cedula, numero, updated_at:new Date().toISOString() };
+  let res;
+  if(editandoMetodoId) res = await authFetch(`${SUPABASE_URL}/rest/v1/catalogo_metodos_pago?id=eq.${editandoMetodoId}&tienda_id=eq.${tienda.id}`, { method:'PATCH', headers:headersAuth(), body:JSON.stringify(body) });
+  else res = await authFetch(`${SUPABASE_URL}/rest/v1/catalogo_metodos_pago`, { method:'POST', headers:headersAuth(), body:JSON.stringify(body) });
+  if(res.ok) { cerrarEditarMetodoPanel(); toastPanel('✓ Método guardado'); await cargarMetodosPagoPanel(); renderMetodosPanel(); }
+  else toastPanel('Error al guardar');
+}
+async function eliminarMetodoPanel(id, nombre) {
+  if(!confirm(`¿Eliminar el método "${nombre}"?`)) return;
+  const res = await authFetch(`${SUPABASE_URL}/rest/v1/catalogo_metodos_pago?id=eq.${id}&tienda_id=eq.${tienda.id}`, { method:'DELETE', headers:headersAuth() });
+  if(res.ok) { toastPanel('Método eliminado'); await cargarMetodosPagoPanel(); renderMetodosPanel(); } else toastPanel('Error al eliminar');
+}
+
+/* ---------------- TOAST / UTIL ---------------- */
+function toastPanel(msg) {
+  const t = document.getElementById('toast-panel');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2800);
+}
+
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape') {
+    cerrarEditarProducto(); cerrarIAImagenPanel(); cerrarVentaIAPanel(); cerrarEditarMetodoPanel();
+  }
+});
+
+/* ---------------- ARRANQUE ---------------- */
+(async function init() {
+  cargarSesionLocal();
+  if(session?.access_token) {
+    if(session.expires_at && Date.now() > session.expires_at) {
+      const ok = await refrescarSesion();
+      if(!ok) { limpiarSesion(); return; }
+    }
+    await resolverTiendaYArrancar();
+  }
+})();
+</script>
+</body>
+</html>
