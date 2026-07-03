@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Vendiwa — Crea tu catálogo online y vende por WhatsApp</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+  :root {
+    --vd-tinta: #241C29;
+    --vd-tinta2: #2E2433;
+    --vd-papel: #FBF3E7;
+    --vd-papel2: #F3E9D8;
+    --vd-marigold: #F3A93C;
+    --vd-coral: #F0654C;
+    --vd-menta: #3FAE8A;
+    --vd-tinta-suave: #6B5F63;
+    --vd-borde: #EADFCD;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Plus Jakarta Sans', sans-serif; background: var(--vd-papel); color: var(--vd-tinta); }
+  a { color: inherit; text-decoration:none; }
+  img { max-width:100%; display:block; }
+
+  /* HEADER */
+  header {
+    position: sticky; top:0; z-index:100;
+    background: var(--vd-tinta); border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding: 14px 18px; display:flex; align-items:center; justify-content:space-between;
+  }
+  .logo { display:flex; align-items:center; gap:8px; }
+  .tag-icon {
+    width: 24px; height: 24px; position:relative; flex-shrink:0;
+    background: var(--vd-marigold); border-radius: 4px 11px 11px 4px; transform: rotate(-8deg);
+  }
+  .tag-icon::after {
+    content:''; position:absolute; left:6px; top:50%; transform:translateY(-50%);
+    width:5px; height:5px; border-radius:50%; background: var(--vd-tinta);
+  }
+  .logo-txt { font-family:'Fraunces', serif; font-weight:700; font-size:1.15rem; color:#fff; }
+  nav.desktop-nav { display:none; gap:26px; }
+  nav.desktop-nav a { color: rgba(251,243,231,0.75); font-size:0.85rem; font-weight:500; }
+  .header-actions { display:flex; align-items:center; gap:10px; }
+  .btn-texto { color: rgba(251,243,231,0.8); font-size:0.8rem; font-weight:500; padding:8px; }
+  .btn-cta-mini {
+    background: var(--vd-coral); color:#fff; font-size:0.78rem; font-weight:700;
+    padding:9px 16px; border-radius:9px; white-space:nowrap;
+  }
+
+  /* HERO */
+  .hero { padding: 48px 20px 36px; text-align:center; }
+  .eyebrow {
+    display:inline-flex; align-items:center; gap:6px;
+    background: rgba(243,169,60,0.13); border:1px solid rgba(243,169,60,0.35);
+    color: var(--vd-marigold); font-family:'IBM Plex Mono',monospace; font-size:0.66rem; font-weight:600;
+    padding:6px 14px; border-radius:20px; letter-spacing:0.4px; margin-bottom:20px;
+  }
+  .hero { background: var(--vd-tinta); }
+  .hero h1 {
+    font-family:'Fraunces', serif; font-weight:600; font-size:2rem; line-height:1.18;
+    color:#fff; margin-bottom:16px; max-width:480px; margin-left:auto; margin-right:auto;
+  }
+  .hero h1 em { font-style:normal; color: var(--vd-marigold); }
+  .hero > p { color: rgba(251,243,231,0.62); font-size:0.92rem; line-height:1.6; max-width:340px; margin:0 auto 26px; }
+  .cta-row { display:flex; flex-direction:column; gap:10px; max-width:320px; margin:0 auto; }
+  .btn-primario, .btn-secundario {
+    padding:15px; border-radius:12px; text-align:center; font-weight:700; font-size:0.9rem; cursor:pointer; border:none; font-family:inherit;
+  }
+  .btn-primario { background: var(--vd-coral); color:#fff; }
+  .btn-secundario { background: transparent; border:1px solid rgba(255,255,255,0.22); color:#fff; font-weight:500; }
+
+  /* TIRA CATEGORIAS */
+  .tira-wrap { background: var(--vd-tinta); padding: 26px 0 40px; overflow-x:auto; white-space:nowrap; }
+  .tira-wrap::-webkit-scrollbar { display:none; }
+  .tag-item {
+    display:inline-flex; align-items:center; gap:6px;
+    background: var(--vd-tinta2); border:1px solid rgba(255,255,255,0.1);
+    color: rgba(251,243,231,0.82); font-size:0.72rem; font-weight:500;
+    padding: 8px 14px 8px 10px; border-radius: 4px 14px 14px 4px; margin: 0 6px 0 16px;
+  }
+  .tag-item .dot { width:5px; height:5px; border-radius:50%; background: var(--vd-marigold); }
+
+  /* SECCIONES CLARAS */
+  section.clara { padding: 46px 20px; }
+  .sec-eyebrow {
+    font-family:'IBM Plex Mono', monospace; font-size:0.66rem; font-weight:600;
+    color: var(--vd-coral); letter-spacing:1px; text-transform:uppercase; margin-bottom:10px; text-align:center;
+  }
+  .sec-titulo {
+    font-family:'Fraunces', serif; font-weight:600; font-size:1.6rem; text-align:center;
+    margin-bottom:10px; line-height:1.25;
+  }
+  .sec-sub { text-align:center; color: var(--vd-tinta-suave); font-size:0.88rem; max-width:420px; margin:0 auto 32px; line-height:1.6; }
+
+  /* FEATURES */
+  .card-etiqueta {
+    position:relative; background:#fff; border:1px solid var(--vd-borde);
+    border-radius: 6px 16px 16px 6px; padding: 18px 18px 18px 24px; margin-bottom:12px;
+  }
+  .card-etiqueta::before {
+    content:''; position:absolute; left:-1px; top:18px; bottom:18px; width:4px;
+    background: var(--vd-marigold); border-radius: 4px 0 0 4px;
+  }
+  .card-etiqueta .punch {
+    position:absolute; left:9px; top:22px; width:6px; height:6px; border-radius:50%;
+    background: var(--vd-papel); border:1px solid var(--vd-borde);
+  }
+  .card-titulo { font-family:'Fraunces', serif; font-weight:600; font-size:1rem; margin-bottom:5px; margin-left:8px; }
+  .card-txt { font-size:0.82rem; color: var(--vd-tinta-suave); line-height:1.55; margin-left:8px; }
+  .features-grid { max-width: 900px; margin:0 auto; }
+
+  /* COMO FUNCIONA */
+  .pasos { max-width:900px; margin:0 auto; display:flex; flex-direction:column; gap:14px; }
+  .paso {
+    display:flex; gap:14px; align-items:flex-start; background:#fff; border:1px solid var(--vd-borde);
+    border-radius:14px; padding:16px 18px;
+  }
+  .paso-num {
+    flex-shrink:0; width:30px; height:30px; border-radius:50%; background: var(--vd-tinta);
+    color: var(--vd-marigold); font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:0.85rem;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .paso-titulo { font-family:'Fraunces', serif; font-weight:600; font-size:0.98rem; margin-bottom:4px; }
+  .paso-txt { font-size:0.82rem; color: var(--vd-tinta-suave); line-height:1.5; }
+
+  /* FAQ */
+  .faq-item { border-bottom:1px solid var(--vd-borde); padding:16px 4px; max-width:700px; margin:0 auto; }
+  .faq-q { font-family:'Fraunces', serif; font-weight:600; font-size:0.94rem; margin-bottom:6px; }
+  .faq-a { font-size:0.84rem; color: var(--vd-tinta-suave); line-height:1.55; }
+
+  /* CTA FINAL + FOOTER */
+  .cta-final { background: var(--vd-coral); border-radius:20px; margin:0 20px 40px; padding:34px 24px; text-align:center; }
+  .cta-final h2 { font-family:'Fraunces', serif; font-weight:600; font-size:1.5rem; color:#fff; margin-bottom:10px; line-height:1.25; }
+  .cta-final p { color: rgba(255,255,255,0.85); font-size:0.86rem; margin-bottom:20px; }
+  .cta-final .btn-primario { background:#fff; color: var(--vd-coral); display:inline-block; padding:14px 28px; }
+
+  footer { background: var(--vd-tinta); color: rgba(251,243,231,0.55); padding:30px 20px; text-align:center; font-size:0.75rem; }
+  footer .logo { justify-content:center; margin-bottom:12px; }
+
+  /* MODALES (registro / login) */
+  .modal-overlay {
+    display:none; position:fixed; inset:0; background:rgba(36,28,41,0.75); z-index:300;
+    align-items:flex-end; justify-content:center; padding:0;
+  }
+  .modal-overlay.active { display:flex; }
+  .modal-box {
+    background: var(--vd-papel); width:100%; max-width:440px; max-height:92vh; overflow-y:auto;
+    border-radius:20px 20px 0 0; padding:28px 22px calc(28px + env(safe-area-inset-bottom));
+  }
+  .modal-cerrar { text-align:right; margin-bottom:6px; }
+  .modal-cerrar span { font-size:1.3rem; cursor:pointer; color: var(--vd-tinta-suave); }
+  .modal-titulo { font-family:'Fraunces', serif; font-weight:600; font-size:1.35rem; margin-bottom:4px; text-align:center; }
+  .modal-sub { text-align:center; color: var(--vd-tinta-suave); font-size:0.82rem; margin-bottom:22px; }
+  .campo { margin-bottom:14px; }
+  .campo label { font-size:0.76rem; font-weight:600; color: var(--vd-tinta); display:block; margin-bottom:6px; }
+  .campo input {
+    width:100%; background:#fff; border:1px solid var(--vd-borde); color: var(--vd-tinta);
+    padding:12px 14px; border-radius:10px; font-size:0.88rem; font-family:inherit; outline:none;
+  }
+  .campo input:focus { border-color: var(--vd-marigold); }
+  .slug-preview { font-family:'IBM Plex Mono',monospace; font-size:0.72rem; margin-top:6px; }
+  .slug-preview.ok { color: var(--vd-menta); }
+  .slug-preview.bad { color: var(--vd-coral); }
+  .check-row { display:flex; align-items:flex-start; gap:8px; margin-bottom:18px; }
+  .check-row input { margin-top:3px; }
+  .check-row label { font-size:0.76rem; color: var(--vd-tinta-suave); line-height:1.4; }
+  .btn-modal {
+    width:100%; padding:14px; border-radius:11px; border:none; font-weight:700; font-size:0.9rem;
+    background: var(--vd-coral); color:#fff; cursor:pointer; font-family:inherit;
+  }
+  .modal-switch { text-align:center; font-size:0.8rem; color: var(--vd-tinta-suave); margin-top:16px; }
+  .modal-switch b { color: var(--vd-coral); cursor:pointer; }
+  .estado-caja {
+    background:#fff; border:1px solid var(--vd-borde); border-radius:12px; padding:20px; text-align:center;
+  }
+  .estado-icono { font-size:2rem; margin-bottom:10px; }
+  .estado-titulo { font-family:'Fraunces', serif; font-weight:600; font-size:1.05rem; margin-bottom:8px; }
+  .estado-txt { font-size:0.84rem; color: var(--vd-tinta-suave); line-height:1.55; }
+  .estado-link { font-family:'IBM Plex Mono',monospace; font-size:0.8rem; color: var(--vd-coral); margin-top:10px; display:block; word-break:break-all; }
+
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: var(--vd-tinta); color:#fff; padding: 12px 22px; border-radius: 10px;
+    font-size: 0.82rem; z-index: 999; opacity: 0; transition: opacity 0.3s; pointer-events:none; max-width:calc(100vw - 32px); text-align:center;
+  }
+  .toast.show { opacity: 1; }
+
+  /* DESKTOP */
+  @media(min-width:860px) {
+    nav.desktop-nav { display:flex; }
+    .hero h1 { font-size:2.7rem; max-width:640px; }
+    .hero > p { max-width:440px; font-size:0.98rem; }
+    .cta-row { flex-direction:row; max-width:none; justify-content:center; }
+    .btn-primario, .btn-secundario { padding:15px 30px; }
+    .features-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
+    .card-etiqueta { margin-bottom:0; }
+    .pasos { flex-direction:row; }
+    .paso { flex-direction:column; flex:1; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><div class="tag-icon"></div><div class="logo-txt">Vendiwa</div></div>
+  <nav class="desktop-nav">
+    <a href="#funcionalidades">Funcionalidades</a>
+    <a href="#como-funciona">Cómo funciona</a>
+    <a href="#faq">Preguntas</a>
+  </nav>
+  <div class="header-actions">
+    <span class="btn-texto" onclick="abrirLogin()">Iniciar sesión</span>
+    <span class="btn-cta-mini" onclick="abrirRegistro()">Comenzar gratis</span>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="eyebrow">● catálogo + whatsapp + ia</div>
+  <h1>Convierte tu negocio en <em>catálogo</em> en minutos</h1>
+  <p>Crea tu tienda, sube tus productos con fotos mejoradas por IA, y recibe pedidos directo a tu WhatsApp. Sin pasarela, sin complicaciones.</p>
+  <div class="cta-row">
+    <button class="btn-primario" onclick="abrirRegistro()">Crear mi tienda gratis</button>
+    <button class="btn-secundario" onclick="toast('El catálogo demo estará disponible muy pronto')">Ver catálogo demo</button>
+  </div>
+</div>
+
+<div class="tira-wrap">
+  <span class="tag-item"><span class="dot"></span>Moda</span>
+  <span class="tag-item"><span class="dot"></span>Ferretería</span>
+  <span class="tag-item"><span class="dot"></span>Repostería</span>
+  <span class="tag-item"><span class="dot"></span>Belleza</span>
+  <span class="tag-item"><span class="dot"></span>Tecnología</span>
+  <span class="tag-item"><span class="dot"></span>Y lo que vendas</span>
+</div>
+
+<section class="clara" id="funcionalidades">
+  <div class="sec-eyebrow">Por qué vendiwa</div>
+  <div class="sec-titulo">Todo lo que necesitas,<br>desde el celular</div>
+  <div class="sec-sub">Vendiwa tiene las herramientas justas para que tu negocio destaque, reciba pedidos y administre su catálogo sin enredos.</div>
+  <div class="features-grid">
+    <div class="card-etiqueta"><div class="punch"></div><div class="card-titulo">Catálogo online</div><div class="card-txt">Crea tu tienda profesional en minutos con productos, fotos, precios y categorías.</div></div>
+    <div class="card-etiqueta"><div class="punch"></div><div class="card-titulo">Pedidos por WhatsApp</div><div class="card-txt">Tus clientes arman su pedido y te escriben directamente. Sin intermediarios.</div></div>
+    <div class="card-etiqueta"><div class="punch"></div><div class="card-titulo">Fotos con IA</div><div class="card-txt">Mejora las fotos de tus productos automáticamente, sin cámara profesional.</div></div>
+    <div class="card-etiqueta"><div class="punch"></div><div class="card-titulo">Textos que venden</div><div class="card-txt">La IA escribe la descripción y el texto de venta listo para publicar.</div></div>
+    <div class="card-etiqueta"><div class="punch"></div><div class="card-titulo">Tu marca, tu estilo</div><div class="card-txt">Personaliza logo, colores, portada y enlaces de tu negocio.</div></div>
+    <div class="card-etiqueta"><div class="punch"></div><div class="card-titulo">Gestión simple</div><div class="card-txt">Administra productos y pedidos desde un panel fácil de usar, hecho para el celular.</div></div>
+  </div>
+</section>
+
+<section class="clara" style="background:var(--vd-papel2);" id="como-funciona">
+  <div class="sec-eyebrow">Cómo funciona</div>
+  <div class="sec-titulo">En 4 simples pasos</div>
+  <div class="sec-sub">Un flujo pensado para personas no técnicas: crear, cargar, compartir y vender.</div>
+  <div class="pasos">
+    <div class="paso"><div class="paso-num">1</div><div><div class="paso-titulo">Crea tu tienda</div><div class="paso-txt">Regístrate gratis y elige el nombre y el link de tu catálogo.</div></div></div>
+    <div class="paso"><div class="paso-num">2</div><div><div class="paso-titulo">Agrega tus productos</div><div class="paso-txt">Sube fotos, precios y descripciones, con ayuda de la IA.</div></div></div>
+    <div class="paso"><div class="paso-num">3</div><div><div class="paso-titulo">Comparte tu enlace</div><div class="paso-txt">Publica tu catálogo: vendiwa.com/tu-tienda.</div></div></div>
+    <div class="paso"><div class="paso-num">4</div><div><div class="paso-titulo">Recibe pedidos</div><div class="paso-txt">Tus clientes envían pedidos completos directo a tu WhatsApp.</div></div></div>
+  </div>
+</section>
+
+<section class="clara" id="faq">
+  <div class="sec-eyebrow">Preguntas frecuentes</div>
+  <div class="sec-titulo">Resolvemos tus dudas</div>
+  <div style="max-width:700px;margin:0 auto;">
+    <div class="faq-item"><div class="faq-q">¿Qué es Vendiwa?</div><div class="faq-a">Una plataforma para crear catálogos online y recibir pedidos directamente por WhatsApp.</div></div>
+    <div class="faq-item"><div class="faq-q">¿Necesito tarjeta de crédito?</div><div class="faq-a">No. Puedes comenzar gratis y decidir después si quieres más funciones.</div></div>
+    <div class="faq-item"><div class="faq-q">¿Sirve para cualquier tipo de negocio?</div><div class="faq-a">Sí. Moda, comida, ferretería, belleza, tecnología — cualquier catálogo de productos funciona.</div></div>
+    <div class="faq-item"><div class="faq-q">¿Los pedidos llegan a mi WhatsApp?</div><div class="faq-a">Sí. El cliente arma su pedido en el catálogo y lo envía directo a tu número.</div></div>
+  </div>
+</section>
+
+<div class="cta-final">
+  <h2>¿Listo para hacer crecer tu negocio?</h2>
+  <p>Crea tu catálogo hoy mismo. Sin complicaciones.</p>
+  <button class="btn-primario" onclick="abrirRegistro()">Comenzar gratis ahora</button>
+</div>
+
+<footer>
+  <div class="logo"><div class="tag-icon"></div><div class="logo-txt">Vendiwa</div></div>
+  <p>La plataforma más fácil para crear tu catálogo online y recibir pedidos por WhatsApp.</p>
+  <p style="margin-top:14px;">© 2026 Vendiwa. Todos los derechos reservados.</p>
+</footer>
+
+<!-- MODAL REGISTRO -->
+<div class="modal-overlay" id="modal-registro">
+  <div class="modal-box">
+    <div class="modal-cerrar"><span onclick="cerrarModales()">✕</span></div>
+    <div id="registro-contenido">
+      <div class="modal-titulo">Crea tu tienda</div>
+      <div class="modal-sub">Gratis. Sin tarjeta de crédito.</div>
+      <div class="campo">
+        <label>Correo electrónico</label>
+        <input type="email" id="r-email" placeholder="correo@negocio.com"/>
+      </div>
+      <div class="campo">
+        <label>Contraseña</label>
+        <input type="password" id="r-password" placeholder="Mínimo 6 caracteres"/>
+      </div>
+      <div class="campo">
+        <label>Nombre de tu tienda</label>
+        <input type="text" id="r-nombre" placeholder="Ej: Moda Andrea" oninput="onNombreTiendaInput()"/>
+      </div>
+      <div class="campo">
+        <label>Enlace público</label>
+        <input type="text" id="r-slug" placeholder="mi-tienda" oninput="onSlugInput()"/>
+        <div class="slug-preview" id="slug-preview">vendiwa.com/?tienda=</div>
+      </div>
+      <div class="check-row">
+        <input type="checkbox" id="r-terminos"/>
+        <label>He leído y acepto los Términos y Condiciones y la Política de Privacidad.</label>
+      </div>
+      <button class="btn-modal" onclick="crearCuenta()" id="btn-crear-cuenta">Crear mi tienda</button>
+      <div class="modal-switch">¿Ya tienes cuenta? <b onclick="abrirLogin()">Inicia sesión</b></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL LOGIN -->
+<div class="modal-overlay" id="modal-login">
+  <div class="modal-box">
+    <div class="modal-cerrar"><span onclick="cerrarModales()">✕</span></div>
+    <div id="login-contenido">
+      <div class="modal-titulo">Inicia sesión</div>
+      <div class="modal-sub">Entra a tu panel para gestionar tu catálogo.</div>
+      <div class="campo">
+        <label>Correo electrónico</label>
+        <input type="email" id="l-email" placeholder="correo@negocio.com"/>
+      </div>
+      <div class="campo">
+        <label>Contraseña</label>
+        <input type="password" id="l-password" placeholder="Tu contraseña"/>
+      </div>
+      <button class="btn-modal" onclick="iniciarSesion()" id="btn-iniciar-sesion">Entrar a mi panel</button>
+      <div class="modal-switch">¿No tienes cuenta? <b onclick="abrirRegistro()">Crea tu tienda gratis</b></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://rkeccygggeoryokjvlhh.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrZWNjeWdnZ2Vvcnlva2p2bGhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMwODE2NjksImV4cCI6MjA5ODY1NzY2OX0.06FmOkwE2kY-r_l4a9o8lDmf7XFWFqhUn5bqUS-jH3M';
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 3200);
+}
+
+function abrirRegistro() {
+  cerrarModales();
+  document.getElementById('modal-registro').classList.add('active');
+}
+function abrirLogin() {
+  cerrarModales();
+  document.getElementById('modal-login').classList.add('active');
+}
+function cerrarModales() {
+  document.getElementById('modal-registro').classList.remove('active');
+  document.getElementById('modal-login').classList.remove('active');
+}
+
+function slugify(s) {
+  return (s || '').toString().toLowerCase().trim()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z0-9\s-]/g,'')
+    .replace(/\s+/g,'-')
+    .replace(/-+/g,'-')
+    .replace(/^-+|-+$/g,'');
+}
+
+let slugManual = false;
+let slugTimer = null;
+
+function onNombreTiendaInput() {
+  if(slugManual) return;
+  const slug = slugify(document.getElementById('r-nombre').value);
+  document.getElementById('r-slug').value = slug;
+  revisarSlugDisponible(slug);
+}
+function onSlugInput() {
+  slugManual = true;
+  const slug = slugify(document.getElementById('r-slug').value);
+  document.getElementById('r-slug').value = slug;
+  revisarSlugDisponible(slug);
+}
+
+function revisarSlugDisponible(slug) {
+  const preview = document.getElementById('slug-preview');
+  clearTimeout(slugTimer);
+  if(!slug) { preview.textContent = 'vendiwa.com/?tienda='; preview.className='slug-preview'; return; }
+  preview.textContent = `vendiwa.com/?tienda=${slug} · revisando...`;
+  preview.className = 'slug-preview';
+  slugTimer = setTimeout(async () => {
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/tiendas?slug=eq.${encodeURIComponent(slug)}&select=id`, {
+        headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY }
+      });
+      const rows = await res.json();
+      if(rows.length) {
+        preview.textContent = `vendiwa.com/?tienda=${slug} · no disponible`;
+        preview.className = 'slug-preview bad';
+      } else {
+        preview.textContent = `vendiwa.com/?tienda=${slug} · disponible`;
+        preview.className = 'slug-preview ok';
+      }
+    } catch(e) { preview.textContent = `vendiwa.com/?tienda=${slug}`; }
+  }, 450);
+}
+
+async function crearTiendaParaUsuario(ownerId, accessToken, nombre, slug) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/tiendas`, {
+    method: 'POST',
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: 'Bearer ' + accessToken,
+      'Content-Type': 'application/json',
+      Prefer: 'return=representation'
+    },
+    body: JSON.stringify({ slug, nombre, owner_id: ownerId })
+  });
+  return res.ok;
+}
+
+async function crearCuenta() {
+  const email = document.getElementById('r-email').value.trim();
+  const password = document.getElementById('r-password').value;
+  const nombre = document.getElementById('r-nombre').value.trim();
+  const slug = slugify(document.getElementById('r-slug').value);
+  const terminos = document.getElementById('r-terminos').checked;
+
+  if(!email || !password || !nombre || !slug) { toast('Completa todos los campos'); return; }
+  if(password.length < 6) { toast('La contraseña debe tener al menos 6 caracteres'); return; }
+  if(!terminos) { toast('Debes aceptar los Términos y la Política de Privacidad'); return; }
+
+  const btn = document.getElementById('btn-crear-cuenta');
+  btn.disabled = true; btn.textContent = 'Creando tu cuenta...';
+
+  try {
+    const resCheck = await fetch(`${SUPABASE_URL}/rest/v1/tiendas?slug=eq.${encodeURIComponent(slug)}&select=id`, {
+      headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY }
+    });
+    const existentes = await resCheck.json();
+    if(existentes.length) { toast('Ese enlace ya está en uso, elige otro'); btn.disabled=false; btn.textContent='Crear mi tienda'; return; }
+
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
+      method: 'POST',
+      headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+
+    if(!res.ok) {
+      toast(data.msg || data.error_description || data.error || 'No se pudo crear la cuenta');
+      btn.disabled = false; btn.textContent = 'Crear mi tienda';
+      return;
+    }
+
+    if(data.access_token && data.user) {
+      const creada = await crearTiendaParaUsuario(data.user.id, data.access_token, nombre, slug);
+      mostrarEstadoRegistro(creada, slug, true);
+    } else if(data.id) {
+      localStorage.setItem('vendiwa_pending_tienda', JSON.stringify({ nombre, slug }));
+      mostrarEstadoRegistro(true, slug, false);
+    } else {
+      toast('No se pudo crear la cuenta, intenta de nuevo');
+      btn.disabled = false; btn.textContent = 'Crear mi tienda';
+    }
+  } catch(e) {
+    toast('Sin conexión o error inesperado');
+    btn.disabled = false; btn.textContent = 'Crear mi tienda';
+  }
+}
+
+function mostrarEstadoRegistro(ok, slug, sesionInmediata) {
+  const cont = document.getElementById('registro-contenido');
+  if(!ok) {
+    cont.innerHTML = `<div class="estado-caja"><div class="estado-icono">⚠️</div><div class="estado-titulo">Tu cuenta se creó, pero hubo un problema</div><div class="estado-txt">No pudimos terminar de configurar tu tienda. Intenta iniciar sesión y lo completamos automáticamente.</div></div>`;
+    return;
+  }
+  if(sesionInmediata) {
+    cont.innerHTML = `<div class="estado-caja"><div class="estado-icono">🎉</div><div class="estado-titulo">¡Tu tienda está lista!</div><div class="estado-txt">Tu catálogo vivirá en:</div><span class="estado-link">vendiwa.com/?tienda=${slug}</span><div class="estado-txt" style="margin-top:14px;">El panel de administración para cargar tus productos lo estamos construyendo — muy pronto podrás entrar con este mismo correo.</div></div>`;
+  } else {
+    cont.innerHTML = `<div class="estado-caja"><div class="estado-icono">📩</div><div class="estado-titulo">Revisa tu correo</div><div class="estado-txt">Te enviamos un enlace para confirmar tu cuenta. Cuando lo confirmes, inicia sesión aquí y tu tienda quedará lista automáticamente.</div></div>`;
+  }
+}
+
+async function iniciarSesion() {
+  const email = document.getElementById('l-email').value.trim();
+  const password = document.getElementById('l-password').value;
+  if(!email || !password) { toast('Completa correo y contraseña'); return; }
+
+  const btn = document.getElementById('btn-iniciar-sesion');
+  btn.disabled = true; btn.textContent = 'Entrando...';
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+      method: 'POST',
+      headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+
+    if(!res.ok) {
+      toast(data.error_description || data.msg || 'Correo o contraseña incorrectos');
+      btn.disabled = false; btn.textContent = 'Entrar a mi panel';
+      return;
+    }
+
+    const resT = await fetch(`${SUPABASE_URL}/rest/v1/tiendas?owner_id=eq.${data.user.id}&select=*`, {
+      headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + data.access_token }
+    });
+    let tiendas = await resT.json();
+    let tienda = tiendas[0];
+
+    if(!tienda) {
+      const pendiente = JSON.parse(localStorage.getItem('vendiwa_pending_tienda') || 'null');
+      if(pendiente) {
+        await crearTiendaParaUsuario(data.user.id, data.access_token, pendiente.nombre, pendiente.slug);
+        localStorage.removeItem('vendiwa_pending_tienda');
+        tienda = pendiente;
+      }
+    }
+
+    mostrarEstadoLogin(tienda);
+  } catch(e) {
+    toast('Sin conexión o error inesperado');
+    btn.disabled = false; btn.textContent = 'Entrar a mi panel';
+  }
+}
+
+function mostrarEstadoLogin(tienda) {
+  const cont = document.getElementById('login-contenido');
+  if(tienda) {
+    cont.innerHTML = `<div class="estado-caja"><div class="estado-icono">👋</div><div class="estado-titulo">¡Bienvenido de nuevo!</div><div class="estado-txt">Tu catálogo:</div><span class="estado-link">vendiwa.com/?tienda=${tienda.slug}</span><div class="estado-txt" style="margin-top:14px;">El panel de administración está en construcción — pronto podrás entrar directo desde aquí.</div></div>`;
+  } else {
+    cont.innerHTML = `<div class="estado-caja"><div class="estado-icono">🛠️</div><div class="estado-titulo">Casi listo</div><div class="estado-txt">Iniciaste sesión, pero no encontramos una tienda asociada a tu cuenta. Escríbenos y te ayudamos a configurarla.</div></div>`;
+  }
+}
+</script>
+</body>
+</html>
