@@ -712,8 +712,31 @@ async function resolverTiendaYArrancar() {
   document.getElementById('estado-sin-tienda').style.display = 'none';
   try {
     const res = await authFetch(`${SUPABASE_URL}/rest/v1/tiendas?owner_id=eq.${session.user.id}&select=*`, { headers: headersAuth() });
-    const rows = await res.json();
-    if(!res.ok || !Array.isArray(rows) || !rows.length) {
+    let rows = res.ok ? await res.json() : [];
+
+    // Si no tiene tienda todavía, puede ser un usuario que se acaba de registrar y
+    // tuvo que confirmar su correo antes de poder iniciar sesión. En ese caso, su
+    // tienda quedó pendiente guardada en este navegador (ver registro.html) y la
+    // creamos ahora, en su primer inicio de sesión real.
+    if(!Array.isArray(rows) || !rows.length) {
+      const pendienteRaw = localStorage.getItem('vendiwa_pending_tienda');
+      if(pendienteRaw) {
+        try {
+          const pendiente = JSON.parse(pendienteRaw);
+          const resCrear = await authFetch(`${SUPABASE_URL}/rest/v1/tiendas`, {
+            method:'POST',
+            headers: { ...headersAuth(), 'Prefer':'return=representation' },
+            body: JSON.stringify({ slug: pendiente.slug, nombre: pendiente.nombre, telefono: pendiente.telefono, owner_id: session.user.id })
+          });
+          if(resCrear.ok) {
+            rows = await resCrear.json();
+            localStorage.removeItem('vendiwa_pending_tienda');
+          }
+        } catch(e) { /* si falla, cae al estado de "sin tienda" de más abajo */ }
+      }
+    }
+
+    if(!Array.isArray(rows) || !rows.length) {
       document.getElementById('estado-sin-tienda').style.display = 'flex';
       return;
     }
