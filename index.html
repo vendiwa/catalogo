@@ -210,8 +210,8 @@
     <a href="#faq">Preguntas</a>
   </nav>
   <div class="header-actions">
-    <span class="btn-texto" onclick="abrirLogin()">Iniciar sesión</span>
-    <span class="btn-cta-mini" onclick="abrirRegistro()">Comenzar gratis</span>
+    <a class="btn-texto" href="panel.html">Iniciar sesión</a>
+    <a class="btn-cta-mini" href="registro.html">Comenzar gratis</a>
   </div>
 </header>
 
@@ -220,7 +220,7 @@
   <h1>Convierte tu negocio en <em>catálogo</em> en minutos</h1>
   <p>Crea tu tienda, sube tus productos con fotos mejoradas por IA, y recibe pedidos directo a tu WhatsApp. Sin pasarela, sin complicaciones.</p>
   <div class="cta-row">
-    <button class="btn-primario" onclick="abrirRegistro()">Crear mi tienda gratis</button>
+    <a class="btn-primario" href="registro.html">Crear mi tienda gratis</a>
     <button class="btn-secundario" onclick="toast('El catálogo demo estará disponible muy pronto')">Ver catálogo demo</button>
   </div>
 </div>
@@ -274,7 +274,7 @@
 <div class="cta-final">
   <h2>¿Listo para hacer crecer tu negocio?</h2>
   <p>Crea tu catálogo hoy mismo. Sin complicaciones.</p>
-  <button class="btn-primario" onclick="abrirRegistro()">Comenzar gratis ahora</button>
+  <a class="btn-primario" href="registro.html">Comenzar gratis ahora</a>
 </div>
 
 <footer>
@@ -283,262 +283,13 @@
   <p style="margin-top:14px;">© 2026 Vendiwa. Todos los derechos reservados.</p>
 </footer>
 
-<!-- MODAL REGISTRO -->
-<div class="modal-overlay" id="modal-registro">
-  <div class="modal-box">
-    <div class="modal-cerrar"><span onclick="cerrarModales()">✕</span></div>
-    <div id="registro-contenido">
-      <div class="modal-titulo">Crea tu tienda</div>
-      <div class="modal-sub">Gratis. Sin tarjeta de crédito.</div>
-      <div class="campo">
-        <label>Correo electrónico</label>
-        <input type="email" id="r-email" placeholder="correo@negocio.com"/>
-      </div>
-      <div class="campo">
-        <label>Contraseña</label>
-        <input type="password" id="r-password" placeholder="Mínimo 6 caracteres"/>
-      </div>
-      <div class="campo">
-        <label>Nombre de tu tienda</label>
-        <input type="text" id="r-nombre" placeholder="Ej: Moda Andrea" oninput="onNombreTiendaInput()"/>
-      </div>
-      <div class="campo">
-        <label>Enlace público</label>
-        <input type="text" id="r-slug" placeholder="mi-tienda" oninput="onSlugInput()"/>
-        <div class="slug-preview" id="slug-preview">vendiwa.com/?tienda=</div>
-      </div>
-      <div class="check-row">
-        <input type="checkbox" id="r-terminos"/>
-        <label>He leído y acepto los Términos y Condiciones y la Política de Privacidad.</label>
-      </div>
-      <button class="btn-modal" onclick="crearCuenta()" id="btn-crear-cuenta">Crear mi tienda</button>
-      <div class="modal-switch">¿Ya tienes cuenta? <b onclick="abrirLogin()">Inicia sesión</b></div>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL LOGIN -->
-<div class="modal-overlay" id="modal-login">
-  <div class="modal-box">
-    <div class="modal-cerrar"><span onclick="cerrarModales()">✕</span></div>
-    <div id="login-contenido">
-      <div class="modal-titulo">Inicia sesión</div>
-      <div class="modal-sub">Entra a tu panel para gestionar tu catálogo.</div>
-      <div class="campo">
-        <label>Correo electrónico</label>
-        <input type="email" id="l-email" placeholder="correo@negocio.com"/>
-      </div>
-      <div class="campo">
-        <label>Contraseña</label>
-        <input type="password" id="l-password" placeholder="Tu contraseña"/>
-      </div>
-      <button class="btn-modal" onclick="iniciarSesion()" id="btn-iniciar-sesion">Entrar a mi panel</button>
-      <div class="modal-switch">¿No tienes cuenta? <b onclick="abrirRegistro()">Crea tu tienda gratis</b></div>
-    </div>
-  </div>
-</div>
-
 <div class="toast" id="toast"></div>
 
 <script>
-const SUPABASE_URL = 'https://rkeccygggeoryokjvlhh.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrZWNjeWdnZ2Vvcnlva2p2bGhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMwODE2NjksImV4cCI6MjA5ODY1NzY2OX0.06FmOkwE2kY-r_l4a9o8lDmf7XFWFqhUn5bqUS-jH3M';
-
 function toast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'), 3200);
-}
-
-function abrirRegistro() {
-  cerrarModales();
-  document.getElementById('modal-registro').classList.add('active');
-}
-function abrirLogin() {
-  cerrarModales();
-  document.getElementById('modal-login').classList.add('active');
-}
-function cerrarModales() {
-  document.getElementById('modal-registro').classList.remove('active');
-  document.getElementById('modal-login').classList.remove('active');
-}
-
-function slugify(s) {
-  return (s || '').toString().toLowerCase().trim()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
-    .replace(/[^a-z0-9\s-]/g,'')
-    .replace(/\s+/g,'-')
-    .replace(/-+/g,'-')
-    .replace(/^-+|-+$/g,'');
-}
-
-let slugManual = false;
-let slugTimer = null;
-
-function onNombreTiendaInput() {
-  if(slugManual) return;
-  const slug = slugify(document.getElementById('r-nombre').value);
-  document.getElementById('r-slug').value = slug;
-  revisarSlugDisponible(slug);
-}
-function onSlugInput() {
-  slugManual = true;
-  const slug = slugify(document.getElementById('r-slug').value);
-  document.getElementById('r-slug').value = slug;
-  revisarSlugDisponible(slug);
-}
-
-function revisarSlugDisponible(slug) {
-  const preview = document.getElementById('slug-preview');
-  clearTimeout(slugTimer);
-  if(!slug) { preview.textContent = 'vendiwa.com/?tienda='; preview.className='slug-preview'; return; }
-  preview.textContent = `vendiwa.com/?tienda=${slug} · revisando...`;
-  preview.className = 'slug-preview';
-  slugTimer = setTimeout(async () => {
-    try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/tiendas?slug=eq.${encodeURIComponent(slug)}&select=id`, {
-        headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY }
-      });
-      const rows = await res.json();
-      if(rows.length) {
-        preview.textContent = `vendiwa.com/?tienda=${slug} · no disponible`;
-        preview.className = 'slug-preview bad';
-      } else {
-        preview.textContent = `vendiwa.com/?tienda=${slug} · disponible`;
-        preview.className = 'slug-preview ok';
-      }
-    } catch(e) { preview.textContent = `vendiwa.com/?tienda=${slug}`; }
-  }, 450);
-}
-
-async function crearTiendaParaUsuario(ownerId, accessToken, nombre, slug) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/tiendas`, {
-    method: 'POST',
-    headers: {
-      apikey: SUPABASE_KEY,
-      Authorization: 'Bearer ' + accessToken,
-      'Content-Type': 'application/json',
-      Prefer: 'return=representation'
-    },
-    body: JSON.stringify({ slug, nombre, owner_id: ownerId })
-  });
-  return res.ok;
-}
-
-async function crearCuenta() {
-  const email = document.getElementById('r-email').value.trim();
-  const password = document.getElementById('r-password').value;
-  const nombre = document.getElementById('r-nombre').value.trim();
-  const slug = slugify(document.getElementById('r-slug').value);
-  const terminos = document.getElementById('r-terminos').checked;
-
-  if(!email || !password || !nombre || !slug) { toast('Completa todos los campos'); return; }
-  if(password.length < 6) { toast('La contraseña debe tener al menos 6 caracteres'); return; }
-  if(!terminos) { toast('Debes aceptar los Términos y la Política de Privacidad'); return; }
-
-  const btn = document.getElementById('btn-crear-cuenta');
-  btn.disabled = true; btn.textContent = 'Creando tu cuenta...';
-
-  try {
-    const resCheck = await fetch(`${SUPABASE_URL}/rest/v1/tiendas?slug=eq.${encodeURIComponent(slug)}&select=id`, {
-      headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY }
-    });
-    const existentes = await resCheck.json();
-    if(existentes.length) { toast('Ese enlace ya está en uso, elige otro'); btn.disabled=false; btn.textContent='Crear mi tienda'; return; }
-
-    const res = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
-      method: 'POST',
-      headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    });
-    const data = await res.json();
-
-    if(!res.ok) {
-      toast(data.msg || data.error_description || data.error || 'No se pudo crear la cuenta');
-      btn.disabled = false; btn.textContent = 'Crear mi tienda';
-      return;
-    }
-
-    if(data.access_token && data.user) {
-      const creada = await crearTiendaParaUsuario(data.user.id, data.access_token, nombre, slug);
-      mostrarEstadoRegistro(creada, slug, true);
-    } else if(data.id) {
-      localStorage.setItem('vendiwa_pending_tienda', JSON.stringify({ nombre, slug }));
-      mostrarEstadoRegistro(true, slug, false);
-    } else {
-      toast('No se pudo crear la cuenta, intenta de nuevo');
-      btn.disabled = false; btn.textContent = 'Crear mi tienda';
-    }
-  } catch(e) {
-    toast('Sin conexión o error inesperado');
-    btn.disabled = false; btn.textContent = 'Crear mi tienda';
-  }
-}
-
-function mostrarEstadoRegistro(ok, slug, sesionInmediata) {
-  const cont = document.getElementById('registro-contenido');
-  if(!ok) {
-    cont.innerHTML = `<div class="estado-caja"><div class="estado-icono">⚠️</div><div class="estado-titulo">Tu cuenta se creó, pero hubo un problema</div><div class="estado-txt">No pudimos terminar de configurar tu tienda. Intenta iniciar sesión y lo completamos automáticamente.</div></div>`;
-    return;
-  }
-  if(sesionInmediata) {
-    cont.innerHTML = `<div class="estado-caja"><div class="estado-icono">🎉</div><div class="estado-titulo">¡Tu tienda está lista!</div><div class="estado-txt">Tu catálogo vivirá en:</div><span class="estado-link">vendiwa.com/?tienda=${slug}</span><div class="estado-txt" style="margin-top:14px;">El panel de administración para cargar tus productos lo estamos construyendo — muy pronto podrás entrar con este mismo correo.</div></div>`;
-  } else {
-    cont.innerHTML = `<div class="estado-caja"><div class="estado-icono">📩</div><div class="estado-titulo">Revisa tu correo</div><div class="estado-txt">Te enviamos un enlace para confirmar tu cuenta. Cuando lo confirmes, inicia sesión aquí y tu tienda quedará lista automáticamente.</div></div>`;
-  }
-}
-
-async function iniciarSesion() {
-  const email = document.getElementById('l-email').value.trim();
-  const password = document.getElementById('l-password').value;
-  if(!email || !password) { toast('Completa correo y contraseña'); return; }
-
-  const btn = document.getElementById('btn-iniciar-sesion');
-  btn.disabled = true; btn.textContent = 'Entrando...';
-
-  try {
-    const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
-      method: 'POST',
-      headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    });
-    const data = await res.json();
-
-    if(!res.ok) {
-      toast(data.error_description || data.msg || 'Correo o contraseña incorrectos');
-      btn.disabled = false; btn.textContent = 'Entrar a mi panel';
-      return;
-    }
-
-    const resT = await fetch(`${SUPABASE_URL}/rest/v1/tiendas?owner_id=eq.${data.user.id}&select=*`, {
-      headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + data.access_token }
-    });
-    let tiendas = await resT.json();
-    let tienda = tiendas[0];
-
-    if(!tienda) {
-      const pendiente = JSON.parse(localStorage.getItem('vendiwa_pending_tienda') || 'null');
-      if(pendiente) {
-        await crearTiendaParaUsuario(data.user.id, data.access_token, pendiente.nombre, pendiente.slug);
-        localStorage.removeItem('vendiwa_pending_tienda');
-        tienda = pendiente;
-      }
-    }
-
-    mostrarEstadoLogin(tienda);
-  } catch(e) {
-    toast('Sin conexión o error inesperado');
-    btn.disabled = false; btn.textContent = 'Entrar a mi panel';
-  }
-}
-
-function mostrarEstadoLogin(tienda) {
-  const cont = document.getElementById('login-contenido');
-  if(tienda) {
-    cont.innerHTML = `<div class="estado-caja"><div class="estado-icono">👋</div><div class="estado-titulo">¡Bienvenido de nuevo!</div><div class="estado-txt">Tu catálogo:</div><span class="estado-link">vendiwa.com/?tienda=${tienda.slug}</span><div class="estado-txt" style="margin-top:14px;">El panel de administración está en construcción — pronto podrás entrar directo desde aquí.</div></div>`;
-  } else {
-    cont.innerHTML = `<div class="estado-caja"><div class="estado-icono">🛠️</div><div class="estado-titulo">Casi listo</div><div class="estado-txt">Iniciaste sesión, pero no encontramos una tienda asociada a tu cuenta. Escríbenos y te ayudamos a configurarla.</div></div>`;
-  }
 }
 </script>
 </body>
