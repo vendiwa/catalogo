@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Crea tu tienda — Vendiwa</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+  :root {
+    --vd-tinta: #241C29;
+    --vd-tinta2: #2E2433;
+    --vd-papel: #FBF3E7;
+    --vd-papel2: #F3E9D8;
+    --vd-marigold: #F3A93C;
+    --vd-coral: #F0654C;
+    --vd-menta: #3FAE8A;
+    --vd-tinta-suave: #6B5F63;
+    --vd-borde: #EADFCD;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { height:100%; }
+  body {
+    font-family:'Plus Jakarta Sans', sans-serif; background: var(--vd-papel); color: var(--vd-tinta);
+    min-height:100vh; display:flex; flex-direction:column;
+  }
+  a { color:inherit; text-decoration:none; }
+  input, button { font-family:inherit; }
+
+  /* HEADER simple, coherente con el resto del sitio */
+  header {
+    background: var(--vd-tinta); padding:16px 20px;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .logo { display:flex; align-items:center; gap:8px; }
+  .tag-icon { width:24px; height:24px; position:relative; background: var(--vd-marigold); border-radius:4px 11px 11px 4px; transform:rotate(-8deg); }
+  .tag-icon::after { content:''; position:absolute; left:6px; top:50%; transform:translateY(-50%); width:5px; height:5px; border-radius:50%; background: var(--vd-tinta); }
+  .logo-txt { font-family:'Fraunces', serif; font-weight:700; font-size:1.1rem; color:#fff; }
+  .link-volver { color: rgba(251,243,231,0.7); font-size:0.8rem; font-weight:500; }
+
+  /* CONTENEDOR CENTRAL */
+  main { flex:1; display:flex; align-items:flex-start; justify-content:center; padding:36px 18px 48px; }
+  .caja-registro { width:100%; max-width:420px; }
+
+  .titulo-principal { font-family:'Fraunces', serif; font-weight:600; font-size:1.6rem; text-align:center; margin-bottom:6px; }
+  .sub-principal { text-align:center; color: var(--vd-tinta-suave); font-size:0.86rem; margin-bottom:28px; }
+
+  .campo { margin-bottom:15px; }
+  .campo label { font-size:0.78rem; font-weight:600; color: var(--vd-tinta); display:block; margin-bottom:6px; }
+  .campo input {
+    width:100%; background:#fff; border:1px solid var(--vd-borde); color: var(--vd-tinta);
+    padding:13px 14px; border-radius:10px; font-size:0.9rem; outline:none; transition:border-color .2s;
+  }
+  .campo input:focus { border-color: var(--vd-marigold); }
+  .campo input::placeholder { color:#b3a89c; }
+  .slug-preview { font-family:'IBM Plex Mono', monospace; font-size:0.72rem; margin-top:7px; }
+  .slug-preview.ok { color: var(--vd-menta); }
+  .slug-preview.bad { color: var(--vd-coral); }
+
+  .check-row { display:flex; align-items:flex-start; gap:9px; margin-bottom:20px; }
+  .check-row input { margin-top:3px; flex-shrink:0; }
+  .check-row label { font-size:0.78rem; color: var(--vd-tinta-suave); line-height:1.45; }
+
+  .btn-crear {
+    width:100%; padding:15px; border-radius:11px; border:none; font-weight:700; font-size:0.92rem;
+    background: var(--vd-coral); color:#fff; cursor:pointer;
+  }
+  .btn-crear:disabled { opacity:0.6; }
+
+  .switch-abajo { text-align:center; font-size:0.84rem; color: var(--vd-tinta-suave); margin-top:20px; }
+  .switch-abajo b { color: var(--vd-coral); cursor:pointer; }
+
+  /* ESTADO DE EXITO */
+  .estado-caja { background:#fff; border:1px solid var(--vd-borde); border-radius:14px; padding:26px 22px; text-align:center; }
+  .estado-icono { font-size:2.3rem; margin-bottom:12px; }
+  .estado-titulo { font-family:'Fraunces', serif; font-weight:600; font-size:1.15rem; margin-bottom:10px; }
+  .estado-txt { font-size:0.86rem; color: var(--vd-tinta-suave); line-height:1.6; }
+  .estado-link {
+    font-family:'IBM Plex Mono', monospace; font-size:0.82rem; color: var(--vd-coral);
+    margin:12px 0; display:block; word-break:break-all; background: var(--vd-papel2);
+    padding:10px 12px; border-radius:9px;
+  }
+  .btn-ir-panel {
+    display:block; width:100%; padding:14px; border-radius:11px; border:none; font-weight:700; font-size:0.9rem;
+    background: var(--vd-tinta); color:#fff; cursor:pointer; margin-top:18px; text-align:center;
+  }
+
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: var(--vd-tinta); color:#fff; padding: 12px 22px; border-radius: 10px;
+    font-size: 0.82rem; z-index: 999; opacity: 0; transition: opacity 0.3s; pointer-events:none;
+    max-width:calc(100vw - 32px); text-align:center;
+  }
+  .toast.show { opacity: 1; }
+
+  @media(min-width:600px) {
+    main { padding-top:56px; }
+    .titulo-principal { font-size:1.85rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><div class="tag-icon"></div><div class="logo-txt">Vendiwa</div></div>
+  <a class="link-volver" href="index.html">← Volver al inicio</a>
+</header>
+
+<main>
+  <div class="caja-registro">
+    <div id="registro-contenido">
+      <div class="titulo-principal">Crea tu tienda</div>
+      <div class="sub-principal">Gratis. Sin tarjeta de crédito.</div>
+
+      <div class="campo">
+        <label>Correo electrónico</label>
+        <input type="email" id="r-email" placeholder="correo@negocio.com"/>
+      </div>
+      <div class="campo">
+        <label>Contraseña</label>
+        <input type="password" id="r-password" placeholder="Mínimo 6 caracteres"/>
+      </div>
+      <div class="campo">
+        <label>Nombre de tu tienda</label>
+        <input type="text" id="r-nombre" placeholder="Ej: Moda Andrea" oninput="onNombreTiendaInput()"/>
+      </div>
+      <div class="campo">
+        <label>Número de celular</label>
+        <input type="text" id="r-telefono" placeholder="Ej: 3001234567" inputmode="numeric"/>
+      </div>
+      <div class="campo">
+        <label>Enlace público</label>
+        <input type="text" id="r-slug" placeholder="mi-tienda" oninput="onSlugInput()"/>
+        <div class="slug-preview" id="slug-preview">vendiwa.com/?tienda=</div>
+      </div>
+      <div class="check-row">
+        <input type="checkbox" id="r-terminos"/>
+        <label>He leído y acepto los Términos y Condiciones y la Política de Privacidad.</label>
+      </div>
+      <button class="btn-crear" onclick="crearCuenta()" id="btn-crear-cuenta">Crear mi tienda</button>
+      <div class="switch-abajo">¿Ya tienes cuenta? <b onclick="window.location.href='panel.html'">Inicia sesión</b></div>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://rkeccygggeoryokjvlhh.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrZWNjeWdnZ2Vvcnlva2p2bGhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMwODE2NjksImV4cCI6MjA5ODY1NzY2OX0.06FmOkwE2kY-r_l4a9o8lDmf7XFWFqhUn5bqUS-jH3M';
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 3200);
+}
+
+function slugify(s) {
+  return (s || '').toString().toLowerCase().trim()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z0-9\s-]/g,'')
+    .replace(/\s+/g,'-')
+    .replace(/-+/g,'-')
+    .replace(/^-+|-+$/g,'');
+}
+
+let slugManual = false;
+let slugTimer = null;
+
+function onNombreTiendaInput() {
+  if(slugManual) return;
+  const slug = slugify(document.getElementById('r-nombre').value);
+  document.getElementById('r-slug').value = slug;
+  revisarSlugDisponible(slug);
+}
+function onSlugInput() {
+  slugManual = true;
+  const slug = slugify(document.getElementById('r-slug').value);
+  document.getElementById('r-slug').value = slug;
+  revisarSlugDisponible(slug);
+}
+
+function revisarSlugDisponible(slug) {
+  const preview = document.getElementById('slug-preview');
+  clearTimeout(slugTimer);
+  if(!slug) { preview.textContent = 'vendiwa.com/?tienda='; preview.className='slug-preview'; return; }
+  preview.textContent = `vendiwa.com/?tienda=${slug} · revisando...`;
+  preview.className = 'slug-preview';
+  slugTimer = setTimeout(async () => {
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/tiendas?slug=eq.${encodeURIComponent(slug)}&select=id`, {
+        headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY }
+      });
+      const rows = await res.json();
+      if(rows.length) {
+        preview.textContent = `vendiwa.com/?tienda=${slug} · no disponible`;
+        preview.className = 'slug-preview bad';
+      } else {
+        preview.textContent = `vendiwa.com/?tienda=${slug} · disponible`;
+        preview.className = 'slug-preview ok';
+      }
+    } catch(e) { preview.textContent = `vendiwa.com/?tienda=${slug}`; }
+  }, 450);
+}
+
+async function crearTiendaParaUsuario(ownerId, accessToken, nombre, slug, telefono) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/tiendas`, {
+    method: 'POST',
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: 'Bearer ' + accessToken,
+      'Content-Type': 'application/json',
+      Prefer: 'return=representation'
+    },
+    body: JSON.stringify({ slug, nombre, owner_id: ownerId, telefono })
+  });
+  return res.ok;
+}
+
+async function crearCuenta() {
+  const email = document.getElementById('r-email').value.trim();
+  const password = document.getElementById('r-password').value;
+  const nombre = document.getElementById('r-nombre').value.trim();
+  const telefono = document.getElementById('r-telefono').value.replace(/\D/g,'');
+  const slug = slugify(document.getElementById('r-slug').value);
+  const terminos = document.getElementById('r-terminos').checked;
+
+  if(!email || !password || !nombre || !telefono || !slug) { toast('Completa todos los campos'); return; }
+  if(password.length < 6) { toast('La contraseña debe tener al menos 6 caracteres'); return; }
+  if(telefono.length < 7) { toast('Ingresa un número de celular válido'); return; }
+  if(!terminos) { toast('Debes aceptar los Términos y la Política de Privacidad'); return; }
+
+  const btn = document.getElementById('btn-crear-cuenta');
+  btn.disabled = true; btn.textContent = 'Creando tu cuenta...';
+
+  try {
+    const resCheck = await fetch(`${SUPABASE_URL}/rest/v1/tiendas?slug=eq.${encodeURIComponent(slug)}&select=id`, {
+      headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY }
+    });
+    const existentes = await resCheck.json();
+    if(existentes.length) { toast('Ese enlace ya está en uso, elige otro'); btn.disabled=false; btn.textContent='Crear mi tienda'; return; }
+
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
+      method: 'POST',
+      headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+
+    if(!res.ok) {
+      toast(data.msg || data.error_description || data.error || 'No se pudo crear la cuenta');
+      btn.disabled = false; btn.textContent = 'Crear mi tienda';
+      return;
+    }
+
+    if(data.access_token && data.user) {
+      const creada = await crearTiendaParaUsuario(data.user.id, data.access_token, nombre, slug, telefono);
+      mostrarEstadoRegistro(creada, slug, true);
+    } else if(data.id) {
+      localStorage.setItem('vendiwa_pending_tienda', JSON.stringify({ nombre, slug, telefono }));
+      mostrarEstadoRegistro(true, slug, false);
+    } else {
+      toast('No se pudo crear la cuenta, intenta de nuevo');
+      btn.disabled = false; btn.textContent = 'Crear mi tienda';
+    }
+  } catch(e) {
+    toast('Sin conexión o error inesperado');
+    btn.disabled = false; btn.textContent = 'Crear mi tienda';
+  }
+}
+
+function mostrarEstadoRegistro(ok, slug, sesionInmediata) {
+  const cont = document.getElementById('registro-contenido');
+  if(!ok) {
+    cont.innerHTML = `<div class="estado-caja"><div class="estado-icono">⚠️</div><div class="estado-titulo">Tu cuenta se creó, pero hubo un problema</div><div class="estado-txt">No pudimos terminar de configurar tu tienda. Intenta iniciar sesión desde el panel y lo completamos automáticamente.</div><a class="btn-ir-panel" href="panel.html">Ir a iniciar sesión</a></div>`;
+    return;
+  }
+  if(sesionInmediata) {
+    cont.innerHTML = `<div class="estado-caja"><div class="estado-icono">🎉</div><div class="estado-titulo">¡Tu tienda está lista!</div><div class="estado-txt">Tu catálogo vivirá en:</div><span class="estado-link">vendiwa.com/?tienda=${slug}</span><div class="estado-txt">Ya puedes entrar a tu panel para cargar tus productos.</div><a class="btn-ir-panel" href="panel.html">Ir a mi panel</a></div>`;
+  } else {
+    cont.innerHTML = `<div class="estado-caja"><div class="estado-icono">📩</div><div class="estado-titulo">Revisa tu correo</div><div class="estado-txt">Te enviamos un enlace para confirmar tu cuenta. Cuando lo confirmes, inicia sesión desde el panel y tu tienda quedará lista automáticamente.</div><a class="btn-ir-panel" href="panel.html">Ir a iniciar sesión</a></div>`;
+  }
+}
+</script>
+</body>
+</html>
