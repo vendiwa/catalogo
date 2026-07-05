@@ -896,13 +896,27 @@ function renderSlotsPanel() {
 }
 function clickSlotPanel(i) { slotActivo = i; document.getElementById('img-file-input-panel').click(); }
 function quitarSlotPanel(i) { slotsImagenes[i] = {url:null,file:null}; renderSlotsPanel(); }
-function onArchivoProductoPanel(input) {
+async function onArchivoProductoPanel(input) {
   const file = input.files[0];
   if(!file) return;
-  const reader = new FileReader();
-  reader.onload = e => { slotsImagenes[slotActivo] = { url:slotsImagenes[slotActivo].url, file, _localPreview:e.target.result }; renderSlotsPanel(); };
-  reader.readAsDataURL(file);
   input.value = '';
+  const statusEl = document.getElementById('upload-status-panel');
+  statusEl.style.display = 'block';
+  statusEl.style.color = 'var(--vd-tinta-suave)';
+  statusEl.textContent = '⏳ Optimizando foto...';
+  try {
+    const comprimida = await comprimirImagenPanel(file, 1200);
+    const reader = new FileReader();
+    reader.onload = e => {
+      slotsImagenes[slotActivo] = { url:slotsImagenes[slotActivo].url, file:comprimida, _localPreview:e.target.result };
+      renderSlotsPanel();
+      statusEl.style.display = 'none';
+    };
+    reader.readAsDataURL(comprimida);
+  } catch(e) {
+    statusEl.style.display = 'none';
+    toastPanel('No se pudo procesar la foto, intenta con otra imagen');
+  }
 }
 
 async function subirImagenStorage(file, path) {
